@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTools</title>
+<link rel="stylesheet" href="/shared/styles.css">
+</head>
+<body>
+<header class="shell-header-band">
+  <div class="wrap shell-head">
+    <div class="shell-left">
+      <button class="shell-brand" id="shellBrand" title="Ir a Inicio">MyTools</button>
+      <div class="shell-date" id="shellDate"></div>
+      <div class="shell-weather" id="shellWeather">Cargando clima…</div>
+    </div>
+    <div class="shell-status"><span class="dot"></span> Conectado a la base local (data/mytools.db)</div>
+  </div>
+</header>
+
+<div class="page-content">
+  <div id="root"></div>
+</div>
+
+<script src="/shared/common.js"></script>
+<script src="/modules/dashboard/dashboard.js"></script>
+<script src="/modules/arqueo-caja/arqueo.js"></script>
+<script src="/modules/control-ventas/control-ventas.js"></script>
+<script src="/modules/control-fibra/fibra.js"></script>
+<script src="/modules/sucursal/sucursal.js"></script>
+<script src="/modules/enlaces/enlaces.js"></script>
+<script src="/modules/configuracion/configuracion.js"></script>
+<script>
+(function(){
+  // Para sumar una seccion nueva de nivel superior: 1) crear modules/<id>/<id>.js
+  // con mount(root, ctx)/unmount(), 2) agregar su <script src> arriba, 3) agregar
+  // una entrada aca abajo. Aparece sola como tarjeta en el dashboard (con stats
+  // si se registra en modules/dashboard/dashboard.js).
+  //
+  // "Control de Ventas" es un hub: agrupa sus propias sub-secciones (hoy solo
+  // Fibra óptica) en modules/control-ventas/control-ventas.js, no en esta lista.
+  const SECTIONS = [
+    { id: 'sucursal', code: 'SE', label: 'Sucursal y Empleados', desc: 'Datos del negocio y equipo de trabajo', module: () => window.SucursalModule },
+    { id: 'enlaces', code: 'EN', label: 'Enlaces útiles', desc: 'Links y páginas de referencia guardadas', module: () => window.EnlacesModule },
+    { id: 'arqueo', code: 'AR', label: 'Arqueo de Caja', desc: 'Registro de arqueos por turno', module: () => window.ArqueoModule },
+    { id: 'ventas', code: 'CV', label: 'Control de Ventas', desc: 'Gestión de ventas y servicios', module: () => window.ControlVentasModule },
+    { id: 'config', code: 'CO', label: 'Configuración', desc: 'Ajustes generales de la aplicación', module: () => window.ConfiguracionModule },
+  ];
+
+  // Modulos anidados: no aparecen como tarjeta en Inicio, solo son alcanzables
+  // desde el hub que los contiene (ctx.goTo sigue funcionando igual para ellos).
+  const NESTED_MODULES = {
+    fibra: window.FibraModule,
+  };
+
+  const MODULES = { dashboard: window.DashboardModule, ...NESTED_MODULES };
+  SECTIONS.forEach(s => { MODULES[s.id] = s.module(); });
+
+  const root = document.getElementById('root');
+  let current = null;
+
+  function activate(name){
+    if(!MODULES[name] || name === current) return;
+    if(current && MODULES[current]) MODULES[current].unmount();
+    current = name;
+    MODULES[name].mount(root, { goTo: activate, sections: SECTIONS });
+  }
+
+  document.getElementById('shellBrand').addEventListener('click', () => activate('dashboard'));
+
+  async function refreshHeader(){
+    document.getElementById('shellDate').textContent = window.App3.fmtDateLong(new Date());
+    try{
+      const cfg = await window.App3.api('/api/config');
+      document.getElementById('shellBrand').textContent = cfg.nombre_negocio || 'MyTools';
+    }catch(e){ /* si falla, se queda con el nombre por defecto */ }
+    try{
+      const w = await window.App3.api('/api/weather');
+      const temp = (w.temp !== undefined && w.temp !== null) ? Math.round(w.temp) + '°C' : '';
+      document.getElementById('shellWeather').textContent = `${w.icon || '🌡️'} ${temp} ${w.desc || ''} · ${w.ciudad || ''}`.trim();
+    }catch(e){
+      document.getElementById('shellWeather').textContent = 'Clima no disponible';
+    }
+  }
+
+  window.App3Shell = { refreshHeader, goTo: activate };
+
+  refreshHeader();
+  activate('dashboard');
+})();
+</script>
+</body>
+</html>
