@@ -327,13 +327,17 @@ tbody tr.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;}
 .emp-check input{width:15px;height:15px;accent-color:var(--accent);}
 .emp-check.unlisted{border-color:var(--amber);}
 
+.arqueo-valores{margin-top:18px;padding-top:18px;border-top:1px dashed var(--border);gap:6px 14px;}
+.arqueo-valores .field{gap:3px;}
+.arqueo-valores .field .err{min-height:0;}
+
 .arqueo-result{
   margin-top:18px;padding-top:14px;border-top:1px dashed var(--border);
   display:flex;flex-direction:column;gap:8px;
 }
 .arqueo-result-row{display:flex;align-items:baseline;justify-content:space-between;}
 .arqueo-result-row .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-faint);font-weight:700;}
-.arqueo-result-row.main .lbl{color:var(--text-dim);}
+.arqueo-result-row.main .lbl{color:var(--text-dim);font-size:21px;}
 .arqueo-result-row .val{font-family:var(--mono);font-weight:700;color:var(--text-faint);font-size:13px;}
 .arqueo-result-row.main .val{font-size:21px;color:var(--text-dim);}
 .arqueo-result-row .val.pos{color:var(--blue);}

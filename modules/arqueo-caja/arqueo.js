@@ -69,24 +69,24 @@ window.ArqueoModule = (function(){
           <form id="form" style="display:none;">
             <div class="grid">
               <div class="field full">
-                <label style="color:var(--red);font-weight:600;">Empleados <span class="req">*</span></label>
+                <label style="color:var(--red);font-weight:600;text-transform:uppercase;">Empleados <span class="req">*</span></label>
                 <div class="emp-checks" id="f_empleados"></div>
                 <div class="err" id="err_empleados"></div>
               </div>
             </div>
-            <div class="grid">
+            <div class="grid arqueo-valores">
               <div class="field full">
-                <label style="color:var(--red);font-weight:600;">Caja fuerte (CF) <span class="req">*</span></label>
+                <label style="color:var(--red);font-weight:600;text-transform:uppercase;">Caja fuerte (CF) <span class="req">*</span></label>
                 <input type="text" id="f_cf" class="mono" placeholder="Ej: 700.000 o +100.000+100.000">
                 <div class="err"></div>
               </div>
               <div class="field full">
-                <label style="color:var(--red);font-weight:600;">Caja chica (CC) <span class="req">*</span></label>
+                <label style="color:var(--red);font-weight:600;text-transform:uppercase;">Caja chica (CC) <span class="req">*</span></label>
                 <input type="text" id="f_cc" class="mono" placeholder="Ej: +100.000+50.000+2.000+1.111">
                 <div class="err"></div>
               </div>
               <div class="field full">
-                <label style="color:var(--red);font-weight:600;">Saldo sistema (SS) <span class="req">*</span></label>
+                <label style="color:var(--red);font-weight:600;text-transform:uppercase;">Saldo sistema (SS) <span class="req">*</span></label>
                 <input type="text" id="f_sc" class="mono" placeholder="Ej: 307.221,43">
                 <div class="err"></div>
               </div>
@@ -231,7 +231,12 @@ window.ArqueoModule = (function(){
     function resultLabel(n){
       if(n > EPS) return `Sobra ${fmtMoney(n)}`;
       if(n < -EPS) return `Falta ${fmtMoney(Math.abs(n))}`;
-      return 'Cuadra';
+      return 'Bien';
+    }
+    function amountLabel(n){
+      if(n > EPS) return fmtMoney(n);
+      if(n < -EPS) return fmtMoney(Math.abs(n));
+      return 'Bien';
     }
 
     function sortedActiveByFecha(){
@@ -252,17 +257,17 @@ window.ArqueoModule = (function(){
     function renderStats(){
       const base = monthFiltered();
       const total = base.length;
-      const sumPropia = base.reduce((s,r) => s + deltaOf(r), 0);
       const sobras = base.filter(r => deltaOf(r) > EPS).length;
       const faltas = base.filter(r => deltaOf(r) < -EPS).length;
+      const bien = total - sobras - faltas;
       const last = lastActiveRegistro();
       const lastVal = last ? (last.resultado||0) : 0;
       $('stats').innerHTML = `
         <div class="stat"><div class="n">${total}</div><div class="l">Arqueos del mes</div></div>
-        <div class="stat"><div class="n ${sumPropia>EPS?'pos':sumPropia<-EPS?'neg':''}">${fmtMoney(sumPropia)}</div><div class="l">Balance mensual</div></div>
-        <div class="stat"><div class="n">${sobras}</div><div class="l">Sobrantes</div></div>
-        <div class="stat"><div class="n">${faltas}</div><div class="l">Faltantes</div></div>
-        <div class="stat"><div class="n ${lastVal>EPS?'pos':lastVal<-EPS?'neg':''}">${last ? resultLabel(lastVal) : '—'}</div><div class="l">Resultado</div></div>
+        <div class="stat"><div class="n"><span class="pill falta">${faltas}</span></div><div class="l">Faltantes</div></div>
+        <div class="stat"><div class="n"><span class="pill sobra">${sobras}</span></div><div class="l">Sobrantes</div></div>
+        <div class="stat"><div class="n"><span class="pill cuadra">${bien}</span></div><div class="l">Bien</div></div>
+        <div class="stat"><div class="n ${lastVal>EPS?'pos':lastVal<-EPS?'neg':''}">${last ? amountLabel(lastVal) : '—'}</div><div class="l">Resultado</div></div>
       `;
     }
 

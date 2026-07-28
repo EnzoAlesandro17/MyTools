@@ -11,10 +11,10 @@ window.DashboardModule = (function(){
   `;
 
   function monthKeyOf(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
-  function resultLabel(n){
-    if(n > EPS) return `Sobra ${fmtMoney(n)}`;
-    if(n < -EPS) return `Falta ${fmtMoney(Math.abs(n))}`;
-    return 'Cuadra';
+  function amountLabel(n){
+    if(n > EPS) return fmtMoney(n);
+    if(n < -EPS) return fmtMoney(Math.abs(n));
+    return 'Bien';
   }
   function resultClass(n){
     if(n > EPS) return 'pos';
@@ -32,7 +32,7 @@ window.DashboardModule = (function(){
       const ultimo = registros.slice().sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||'')))[0];
       return [
         { n: delMes.length, l: 'Este mes' },
-        { n: ultimo ? resultLabel(ultimo.resultado||0) : '—', l: 'Último balance', cls: ultimo ? resultClass(ultimo.resultado||0) : '' },
+        { n: ultimo ? amountLabel(ultimo.resultado||0) : '—', l: 'Resultado', cls: ultimo ? resultClass(ultimo.resultado||0) : '' },
       ];
     },
     // "Control de Ventas" es un hub con sub-secciones (Fibra óptica, y las que se sumen);
