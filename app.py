@@ -247,7 +247,7 @@ def arqueo_registros_delete(aid):
     return '', 204
 
 
-ARQUEO_EXCEL_HEADERS = ['Fecha y hora', 'Empleados', 'Caja fuerte', 'Conteo caja', 'Saldo sistema', 'Resultado']
+ARQUEO_EXCEL_HEADERS = ['Fecha y hora', 'Empleados', 'Caja fuerte', 'Caja chica', 'Saldo sistema', 'Resultado']
 
 
 def fmt_fecha_hora_larga(iso):
@@ -331,7 +331,7 @@ def arqueo_import_excel():
             continue
         empleados = [n.strip() for n in str(row.get('Empleados') or '').split(',') if n.strip()]
         cf = to_field(row.get('Caja fuerte'))
-        cc = to_field(row.get('Conteo caja'))
+        cc = to_field(row.get('Caja chica'))
         sc = to_field(row.get('Saldo sistema'))
         resultado = cf['val'] + cc['val'] - sc['val']
         aid = new_id()

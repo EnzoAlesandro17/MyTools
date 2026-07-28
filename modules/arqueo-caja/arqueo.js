@@ -31,16 +31,16 @@ window.ArqueoModule = (function(){
       </div>
 
       <div class="table-wrap">
-        <table id="table">
+        <table id="table" class="table-fixed">
           <thead>
             <tr>
-              <th>Fecha y hora</th>
-              <th>Empleados</th>
-              <th style="text-align:right">Caja fuerte</th>
-              <th style="text-align:right">Conteo caja</th>
-              <th style="text-align:right">Saldo sistema</th>
-              <th style="text-align:right">Variación</th>
-              <th style="text-align:right">Resultado</th>
+              <th style="text-align:center">Fecha y hora</th>
+              <th style="text-align:center">Empleados</th>
+              <th style="text-align:center">Caja fuerte</th>
+              <th style="text-align:center">Caja chica</th>
+              <th style="text-align:center">Saldo sistema</th>
+              <th style="text-align:center">Variación</th>
+              <th style="text-align:center">Resultado</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -67,44 +67,39 @@ window.ArqueoModule = (function(){
         <div class="modal-body">
           <div id="viewBody"></div>
           <form id="form" style="display:none;">
-            <div class="section-title">Datos del arqueo</div>
             <div class="grid">
-              <div class="field full"><label>Fecha y hora <span class="req">*</span></label><input type="datetime-local" id="f_fecha" step="1"><div class="err" id="err_fecha"></div></div>
               <div class="field full">
-                <label>Empleados presentes <span class="req">*</span></label>
+                <label style="color:var(--red);font-weight:600;">Empleados <span class="req">*</span></label>
                 <div class="emp-checks" id="f_empleados"></div>
                 <div class="err" id="err_empleados"></div>
               </div>
             </div>
-            <div class="section-title">Valores</div>
             <div class="grid">
               <div class="field full">
-                <label>Caja fuerte (CF)</label>
+                <label style="color:var(--red);font-weight:600;">Caja fuerte (CF) <span class="req">*</span></label>
                 <input type="text" id="f_cf" class="mono" placeholder="Ej: 700.000 o +100.000+100.000">
-                <div class="hint">Podés escribir una suma, ej: +100.000+100.000+2.000</div>
-                <div class="hint" id="cfHint"></div>
                 <div class="err"></div>
               </div>
               <div class="field full">
-                <label>Conteo de caja (CC)</label>
+                <label style="color:var(--red);font-weight:600;">Caja chica (CC) <span class="req">*</span></label>
                 <input type="text" id="f_cc" class="mono" placeholder="Ej: +100.000+50.000+2.000+1.111">
-                <div class="hint">Suma de todo lo contado en la caja del turno</div>
                 <div class="err"></div>
               </div>
               <div class="field full">
-                <label>Saldo sistema (SC)</label>
+                <label style="color:var(--red);font-weight:600;">Saldo sistema (SS) <span class="req">*</span></label>
                 <input type="text" id="f_sc" class="mono" placeholder="Ej: 307.221,43">
-                <div class="hint">Lo que dice el sistema que debería haber</div>
                 <div class="err"></div>
               </div>
             </div>
-            <div class="result-box">
-              <span class="lbl">Diferencia de este arqueo</span>
-              <span class="val" id="f_resultado">$0,00</span>
-            </div>
-            <div class="result-box" style="margin-top:8px;background:transparent;">
-              <span class="lbl" style="color:var(--text-faint);font-weight:500;">Acumulado total (arrastrado)</span>
-              <span class="val" id="f_acumulado" style="font-size:13px;color:var(--text-faint);">$0,00</span>
+            <div class="arqueo-result">
+              <div class="arqueo-result-row main">
+                <span class="lbl">Variación</span>
+                <span class="val" id="f_resultado">$0,00</span>
+              </div>
+              <div class="arqueo-result-row">
+                <span class="lbl">Resultado</span>
+                <span class="val" id="f_acumulado">$0,00</span>
+              </div>
             </div>
           </form>
         </div>
@@ -161,6 +156,7 @@ window.ArqueoModule = (function(){
     let registros = [];
     let empleados = [];
     let editingId = null;
+    let editingFecha = null; // fecha original del arqueo en edicion (no editable por el usuario)
     let currentMonth = (function(){ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
     let statsMonth = null;
     let lastAutoCf = null;
@@ -206,12 +202,6 @@ window.ArqueoModule = (function(){
     }
 
     // ---------- Fechas ----------
-    function isoToLocalInput(iso){
-      if(!iso) return '';
-      const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})/);
-      if(!m) return '';
-      return `${m[1]}T${m[2]}:${m[3]}:${m[4]}`;
-    }
     function inputToIso(val){
       if(!val) return '';
       let v = val;
@@ -329,13 +319,13 @@ window.ArqueoModule = (function(){
         const resultado = r.resultado || 0;
         const propia = deltaOf(r);
         tr.innerHTML = `
-          <td>${fmtFechaHora(r.fecha)}</td>
-          <td class="empleados-cell">${escapeHtml((r.empleados||[]).join(', ') || '—')}</td>
-          <td class="num" style="text-align:right">${fmtMoney(r.cf ? r.cf.val : 0)}</td>
-          <td class="num" style="text-align:right">${fmtMoney(r.cc ? r.cc.val : 0)}</td>
-          <td class="num" style="text-align:right">${fmtMoney(r.sc ? r.sc.val : 0)}</td>
-          <td style="text-align:right"><span class="pill ${resultClass(propia)}">${resultLabel(propia)}</span></td>
-          <td class="num" style="text-align:right;color:var(--text-faint);">${fmtMoney(resultado)}</td>
+          <td style="text-align:center">${fmtFechaHora(r.fecha)}</td>
+          <td class="empleados-cell" style="text-align:center">${escapeHtml((r.empleados||[]).join(', ') || '—')}</td>
+          <td class="num" style="text-align:center">${fmtMoney(r.cf ? r.cf.val : 0)}</td>
+          <td class="num" style="text-align:center">${fmtMoney(r.cc ? r.cc.val : 0)}</td>
+          <td class="num" style="text-align:center">${fmtMoney(r.sc ? r.sc.val : 0)}</td>
+          <td style="text-align:center"><span class="pill ${resultClass(propia)}">${resultLabel(propia)}</span></td>
+          <td class="num" style="text-align:center;color:var(--text-faint);">${fmtMoney(resultado)}</td>
         `;
         tr.addEventListener('click', () => openView(r.id));
         tbody.appendChild(tr);
@@ -381,24 +371,34 @@ window.ArqueoModule = (function(){
       base.forEach(r => {
         const propia = deltaOf(r);
         (r.empleados && r.empleados.length ? r.empleados : ['— Sin empleado —']).forEach(nombre => {
-          if(!porEmpleado[nombre]) porEmpleado[nombre] = { total: 0, sobras: 0, faltas: 0 };
+          if(!porEmpleado[nombre]) porEmpleado[nombre] = { total: 0, sobras: 0, faltas: 0, bien: 0 };
           porEmpleado[nombre].total++;
           if(propia > EPS) porEmpleado[nombre].sobras++;
           else if(propia < -EPS) porEmpleado[nombre].faltas++;
+          else porEmpleado[nombre].bien++;
         });
       });
       const filas = Object.entries(porEmpleado).sort((a,b) => b[1].total - a[1].total);
 
       $('statsEmpleadoBody').innerHTML = filas.length ? `
-        <table>
-          <thead><tr><th>Empleado</th><th>Arqueos</th><th>Con sobra propia</th><th>Con falta propia</th></tr></thead>
+        <table class="table-fixed">
+          <thead>
+            <tr>
+              <th style="text-align:center">Empleado</th>
+              <th style="text-align:center">Arqueos</th>
+              <th style="text-align:center" class="stat-sub">Sobrantes</th>
+              <th style="text-align:center" class="stat-sub">Faltantes</th>
+              <th style="text-align:center" class="stat-sub">Bien</th>
+            </tr>
+          </thead>
           <tbody>
             ${filas.map(([nombre, d]) => `
               <tr>
-                <td>${escapeHtml(nombre)}</td>
-                <td>${d.total}</td>
-                <td>${d.sobras}</td>
-                <td>${d.faltas}</td>
+                <td style="text-align:center">${escapeHtml(nombre)}</td>
+                <td style="text-align:center">${d.total}</td>
+                <td style="text-align:center"><span class="pill sobra">${d.sobras}</span></td>
+                <td style="text-align:center"><span class="pill falta">${d.faltas}</span></td>
+                <td style="text-align:center"><span class="pill cuadra">${d.bien}</span></td>
               </tr>
             `).join('')}
           </tbody>
@@ -445,13 +445,13 @@ window.ArqueoModule = (function(){
         <div class="section-title">Valores</div>
         <div class="vgrid">
           ${vField('Caja fuerte (CF)', r.cf ? r.cf.expr : '0', true)}
-          ${vField('Conteo de caja (CC)', r.cc ? r.cc.expr : '0', true)}
-          ${vField('Saldo sistema (SC)', r.sc ? r.sc.expr : '0', true)}
+          ${vField('Caja chica (CC)', r.cc ? r.cc.expr : '0', true)}
+          ${vField('Saldo sistema (SS)', r.sc ? r.sc.expr : '0', true)}
         </div>
         <div class="section-title">Resultado</div>
         <div class="vgrid">
-          ${vField('Diferencia de este arqueo', resultLabel(propia), true)}
-          ${vField('Acumulado (arrastrado)', resultLabel(resultado), true)}
+          ${vField('Variación', resultLabel(propia), true)}
+          ${vField('Resultado', resultLabel(resultado), true)}
         </div>
       `;
     }
@@ -520,7 +520,7 @@ window.ArqueoModule = (function(){
     function openNew(){
       editingId = null;
       clearForm();
-      const prior = findPriorRegistro(inputToIso($('f_fecha').value), null);
+      const prior = findPriorRegistro(inputToIso(nowLocalInput()), null);
       $('f_cf').value = prior && prior.cf ? prior.cf.expr : '0';
       lastAutoCf = $('f_cf').value;
       updateResultPreview();
@@ -534,17 +534,6 @@ window.ArqueoModule = (function(){
       overlay.classList.add('open');
     }
 
-    $('f_fecha').addEventListener('change', () => {
-      if(editingId) return;
-      const prior = findPriorRegistro(inputToIso($('f_fecha').value), null);
-      updateCfHint(prior);
-      if($('f_cf').value === lastAutoCf){
-        $('f_cf').value = prior && prior.cf ? prior.cf.expr : '0';
-        lastAutoCf = $('f_cf').value;
-        updateResultPreview();
-      }
-    });
-
     function closeModal(){
       overlay.classList.remove('open');
       editingId = null;
@@ -552,7 +541,7 @@ window.ArqueoModule = (function(){
 
     // ---------- Formulario ----------
     function clearForm(){
-      $('f_fecha').value = nowLocalInput();
+      editingFecha = null;
       $('f_cf').value = '0';
       $('f_cc').value = '';
       $('f_sc').value = '';
@@ -563,7 +552,7 @@ window.ArqueoModule = (function(){
     }
 
     function fillForm(r){
-      $('f_fecha').value = isoToLocalInput(r.fecha) || nowLocalInput();
+      editingFecha = r.fecha;
       $('f_cf').value = r.cf ? r.cf.expr : '0';
       $('f_cc').value = r.cc ? r.cc.expr : '';
       $('f_sc').value = r.sc ? r.sc.expr : '';
@@ -580,7 +569,8 @@ window.ArqueoModule = (function(){
       const cc = toField($('f_cc').value);
       const sc = toField($('f_sc').value);
       const resultado = cf.val + cc.val - sc.val;
-      const prior = findPriorRegistro(inputToIso($('f_fecha').value), editingId);
+      const fechaIso = editingId ? editingFecha : inputToIso(nowLocalInput());
+      const prior = findPriorRegistro(fechaIso, editingId);
       const propia = resultado - (prior ? (prior.resultado||0) : 0);
       const el = $('f_resultado');
       el.textContent = resultLabel(propia);
@@ -591,11 +581,6 @@ window.ArqueoModule = (function(){
 
     function validate(){
       let ok = true;
-      const fecha = $('f_fecha').value;
-      const errFecha = $('err_fecha');
-      if(!fecha){ errFecha.textContent = 'Requerida'; $('f_fecha').classList.add('invalid'); ok = false; }
-      else { errFecha.textContent = ''; $('f_fecha').classList.remove('invalid'); }
-
       const emp = readEmpleadosChecked();
       const errEmp = $('err_empleados');
       if(!emp.length){ errEmp.textContent = 'Seleccioná al menos un empleado'; ok = false; }
@@ -605,7 +590,7 @@ window.ArqueoModule = (function(){
 
     async function saveForm(){
       if(!validate()) return;
-      const fecha = inputToIso($('f_fecha').value);
+      const fecha = editingId ? editingFecha : inputToIso(nowLocalInput());
       const empleadosSel = readEmpleadosChecked();
       const payload = { fecha, empleados: empleadosSel, cf: $('f_cf').value, cc: $('f_cc').value, sc: $('f_sc').value };
       if(editingId){
