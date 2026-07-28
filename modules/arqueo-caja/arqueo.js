@@ -104,10 +104,15 @@ window.ArqueoModule = (function(){
           </form>
         </div>
         <div class="modal-foot" id="viewFooter">
-          <div class="left"><button class="btn secondary" id="viewDeleteBtn" style="color:var(--red);border-color:#e3c2bf;">Eliminar</button></div>
+          <!-- Editar/Eliminar deshabilitados a proposito para evitar ediciones de mala fe.
+               Reactivar cuando exista un rol admin: descomentar estos botones y el
+               addEventListener de viewEditBtn/viewDeleteBtn mas abajo. -->
+          <div class="left">
+            <!-- <button class="btn secondary" id="viewDeleteBtn" style="color:var(--red);border-color:#e3c2bf;">Eliminar</button> -->
+          </div>
           <div class="right">
             <button class="btn secondary" id="viewCloseBtn">Cerrar</button>
-            <button class="btn" id="viewEditBtn">Editar</button>
+            <!-- <button class="btn" id="viewEditBtn">Editar</button> -->
           </div>
         </div>
         <div class="modal-foot" id="editFooter" style="display:none;">
@@ -618,8 +623,9 @@ window.ArqueoModule = (function(){
     $('newBtn').addEventListener('click', openNew);
     $('closeBtn').addEventListener('click', closeModal);
     $('viewCloseBtn').addEventListener('click', closeModal);
-    $('viewEditBtn').addEventListener('click', switchToEdit);
-    $('viewDeleteBtn').addEventListener('click', deleteEntry);
+    // Editar/Eliminar deshabilitados a proposito (ver botones comentados en el template).
+    // $('viewEditBtn').addEventListener('click', switchToEdit);
+    // $('viewDeleteBtn').addEventListener('click', deleteEntry);
     $('cancelBtn').addEventListener('click', closeModal);
     $('saveBtn').addEventListener('click', saveForm);
     overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });

@@ -8,7 +8,10 @@ uso en una sola máquina, no como servicio expuesto a internet.
 ## Módulos
 
 - **Arqueo de caja** — carga diaria de caja fuerte / conteo de caja / saldo
-  de sistema, con export e import a Excel.
+  de sistema, con export e import a Excel. Editar y eliminar un arqueo
+  cargado está deshabilitado a propósito (para evitar ediciones de mala fe);
+  el código sigue en `modules/arqueo-caja/arqueo.js` comentado, listo para
+  reactivarse cuando exista un rol admin.
 - **Control de fibra** — seguimiento de ventas/instalaciones de fibra por
   vendedor, con export e import a Excel.
 - **Sucursal / Empleados** — listado compartido de empleados.
