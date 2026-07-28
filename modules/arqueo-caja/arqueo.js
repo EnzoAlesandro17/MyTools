@@ -80,20 +80,20 @@ window.ArqueoModule = (function(){
             <div class="grid">
               <div class="field full">
                 <label>Caja fuerte (CF)</label>
-                <input type="text" id="f_cf" class="mono" placeholder="Ej: 700000 o +100000+100000">
-                <div class="hint">Podés escribir una suma, ej: +100000+100000+2000</div>
+                <input type="text" id="f_cf" class="mono" placeholder="Ej: 700.000 o +100.000+100.000">
+                <div class="hint">Podés escribir una suma, ej: +100.000+100.000+2.000</div>
                 <div class="hint" id="cfHint"></div>
                 <div class="err"></div>
               </div>
               <div class="field full">
                 <label>Conteo de caja (CC)</label>
-                <input type="text" id="f_cc" class="mono" placeholder="Ej: +100000+50000+2000+1111">
+                <input type="text" id="f_cc" class="mono" placeholder="Ej: +100.000+50.000+2.000+1.111">
                 <div class="hint">Suma de todo lo contado en la caja del turno</div>
                 <div class="err"></div>
               </div>
               <div class="field full">
                 <label>Saldo sistema (SC)</label>
-                <input type="text" id="f_sc" class="mono" placeholder="Ej: 307221.43">
+                <input type="text" id="f_sc" class="mono" placeholder="Ej: 307.221,43">
                 <div class="hint">Lo que dice el sistema que debería haber</div>
                 <div class="err"></div>
               </div>
@@ -171,13 +171,17 @@ window.ArqueoModule = (function(){
     function activeRegistros(){ return registros; } // el server ya filtra eliminado=0
 
     // ---------- Expresiones (CF / CC / SC) ----------
+    // Formato argentino: "." separa miles (grupos de 3 digitos exactos), ","
+    // es el separador decimal. Sin punto de miles cae al caso simple (numero
+    // llano, coma decimal opcional) para no romper "700000" o "+100000+50000".
+    const NUMBER_TOKEN_RE = /[+-]?\d{1,3}(?:\.\d{3})+(?:,\d+)?|[+-]?\d+(?:,\d+)?/g;
     function evalExpr(expr){
       if(expr === undefined || expr === null) return 0;
       const cleaned = String(expr).replace(/\s/g,'');
       if(!cleaned) return 0;
-      const matches = cleaned.match(/[+-]?\d+(?:[.,]\d+)?/g);
+      const matches = cleaned.match(NUMBER_TOKEN_RE);
       if(!matches) return 0;
-      return matches.reduce((sum, tok) => sum + parseFloat(tok.replace(',', '.')), 0);
+      return matches.reduce((sum, tok) => sum + parseFloat(tok.replace(/\./g,'').replace(',', '.')), 0);
     }
     function toField(expr){
       const e = (expr === undefined || expr === null || expr === '') ? '0' : String(expr).trim();

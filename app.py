@@ -65,16 +65,22 @@ def now_ms():
     return int(time.time() * 1000)
 
 
+# Formato argentino: "." separa miles (grupos de 3 digitos exactos), "," es
+# el separador decimal. Un token sin punto de miles cae al caso simple
+# (numero llano, coma decimal opcional) para no romper "700000" o "+100000+50000".
+NUMBER_TOKEN_RE = re.compile(r'[+-]?\d{1,3}(?:\.\d{3})+(?:,\d+)?|[+-]?\d+(?:,\d+)?')
+
+
 def eval_expr(expr):
     if expr is None:
         return 0.0
     cleaned = re.sub(r'\s+', '', str(expr))
     if not cleaned:
         return 0.0
-    matches = re.findall(r'[+-]?\d+(?:[.,]\d+)?', cleaned)
+    matches = NUMBER_TOKEN_RE.findall(cleaned)
     if not matches:
         return 0.0
-    return sum(float(tok.replace(',', '.')) for tok in matches)
+    return sum(float(tok.replace('.', '').replace(',', '.')) for tok in matches)
 
 
 def to_field(expr):

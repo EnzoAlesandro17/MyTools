@@ -26,6 +26,22 @@ def test_eval_expr_ignores_non_numeric_text():
     assert eval_expr('abc') == 0.0
 
 
+def test_eval_expr_thousands_dot_no_decimal():
+    assert eval_expr('1.500') == 1500.0
+
+
+def test_eval_expr_thousands_dot_with_decimal_comma():
+    assert eval_expr('307.221,43') == 307221.43
+
+
+def test_eval_expr_sums_multiple_thousands_terms():
+    assert eval_expr('+100.000+50.000') == 150000.0
+
+
+def test_eval_expr_ignores_peso_symbol():
+    assert eval_expr('$1.500') == 1500.0
+
+
 def test_normalize_url_adds_scheme_when_missing():
     assert normalize_url('example.com') == 'https://example.com'
 
