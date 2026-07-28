@@ -315,6 +315,19 @@ tbody tr.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;}
 .field .hint{font-size:11px;color:var(--text-faint);}
 .field .err{font-size:11px;color:var(--red);min-height:14px;}
 .field input.invalid, .field select.invalid{border-color:var(--red);}
+.date-field{position:relative;display:flex;}
+.date-field input[type=text]{padding-right:32px;}
+.date-pick-btn{
+  position:absolute;right:3px;top:50%;transform:translateY(-50%);
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;border-radius:6px;cursor:pointer;
+  font-size:13px;line-height:1;padding:0;
+}
+.date-pick-btn:hover{background:var(--panel);}
+.date-pick-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+.field input.date-native{
+  position:absolute;width:1px;height:1px;opacity:0;padding:0;border:none;pointer-events:none;
+}
 .checkbox-row{display:flex;align-items:center;gap:8px;padding-top:7px;}
 .checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
 .checkbox-row span{font-size:13px;color:var(--text-dim);}

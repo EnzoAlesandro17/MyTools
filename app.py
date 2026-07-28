@@ -450,12 +450,17 @@ def fibra_ventas_create():
     db = get_db()
     vid = new_id()
     ts = now_ms()
+    min_orden = db.execute(
+        'SELECT MIN(orden) AS m FROM ventas WHERE eliminado = 0 AND fecha_ingreso = ?',
+        (values['fechaIngreso'],),
+    ).fetchone()['m']
+    orden = (min_orden - 10) if min_orden is not None else 10
     cols = ', '.join(FIELD_TO_COL[f] for f in FIELD_IDS)
     placeholders = ', '.join('?' for _ in FIELD_IDS)
     db.execute(
         f'''INSERT INTO ventas (id, {cols}, con_form, orden, created_at, updated_at, eliminado)
             VALUES (?, {placeholders}, ?, ?, ?, ?, 0)''',
-        (vid, *[values[f] for f in FIELD_IDS], 1 if con_form else 0, ts, ts, ts),
+        (vid, *[values[f] for f in FIELD_IDS], 1 if con_form else 0, orden, ts, ts),
     )
     db.commit()
     row = db.execute('SELECT * FROM ventas WHERE id = ?', (vid,)).fetchone()

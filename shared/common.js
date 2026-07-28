@@ -25,6 +25,69 @@ window.App3 = (function(){
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  // ---------- Fechas: input de texto con mascara dd/mm/aaaa ----------
+  // El valor "de verdad" siempre se guarda/envia como ISO (aaaa-mm-dd); estas
+  // funciones convierten entre eso y lo que ve/escribe el usuario.
+  function isoToDisplayDate(iso){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+  }
+
+  // Acepta dd/mm/aaaa, dd-mm-aaaa, aaaa-mm-dd, aaaa/mm/dd, años de 2 digitos
+  // y pegado sin separadores (dd mm aaaa). Devuelve ISO o null si no es una
+  // fecha valida.
+  function parseDateToIso(str){
+    str = String(str || '').trim();
+    if(!str) return null;
+    let d, mo, y;
+    if(/[\/\-.]/.test(str)){
+      const parts = str.split(/[\/\-.]+/).filter(Boolean);
+      if(parts.length !== 3) return null;
+      if(parts[0].length === 4){ [y, mo, d] = parts; } else { [d, mo, y] = parts; }
+    } else {
+      const digits = str.replace(/\D/g,'');
+      if(digits.length === 8){ d = digits.slice(0,2); mo = digits.slice(2,4); y = digits.slice(4,8); }
+      else if(digits.length === 6){ d = digits.slice(0,2); mo = digits.slice(2,4); y = digits.slice(4,6); }
+      else return null;
+    }
+    if(String(y).length === 2) y = (Number(y) <= 69 ? '20' : '19') + String(y).padStart(2,'0');
+    const dn = Number(d), mon = Number(mo), yn = Number(y);
+    if(!dn || !mon || !yn || mon > 12 || dn > 31) return null;
+    const iso = `${String(yn).padStart(4,'0')}-${String(mon).padStart(2,'0')}-${String(dn).padStart(2,'0')}`;
+    const dt = new Date(iso + 'T00:00:00');
+    if(dt.getFullYear() !== yn || dt.getMonth()+1 !== mon || dt.getDate() !== dn) return null;
+    return iso;
+  }
+
+  function formatTypedDate(raw){
+    const digits = String(raw || '').replace(/\D/g,'').slice(0,8);
+    let out = digits.slice(0,2);
+    if(digits.length > 2) out += '/' + digits.slice(2,4);
+    if(digits.length > 4) out += '/' + digits.slice(4,8);
+    return out;
+  }
+
+  // Convierte un <input type="text"> en un campo de fecha dd/mm/aaaa: agrega
+  // las barras solo mientras se escribe, y al pegar interpreta el formato que
+  // haya (con barras, guiones o sin separador) y lo acomoda.
+  function attachDateMask(el){
+    if(!el) return;
+    el.setAttribute('placeholder', 'dd/mm/aaaa');
+    el.setAttribute('inputmode', 'numeric');
+    el.setAttribute('maxlength', '10');
+    el.setAttribute('autocomplete', 'off');
+    el.addEventListener('input', () => {
+      el.value = formatTypedDate(el.value);
+      el.selectionStart = el.selectionEnd = el.value.length;
+    });
+    el.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      const iso = parseDateToIso(text);
+      el.value = iso ? isoToDisplayDate(iso) : formatTypedDate(text);
+    });
+  }
+
   function downloadUrl(url, filename){
     const a = document.createElement('a');
     a.href = url; if(filename) a.download = filename;
@@ -105,5 +168,5 @@ window.App3 = (function(){
     });
   }
 
-  return { EPS, escapeHtml, escapeAttr, capitalizeWords, fmtMoney, todayStr, fmtDateLong, downloadUrl, api, renderSectionCards, moduleIcon };
+  return { EPS, escapeHtml, escapeAttr, capitalizeWords, fmtMoney, todayStr, fmtDateLong, downloadUrl, api, renderSectionCards, moduleIcon, isoToDisplayDate, parseDateToIso, attachDateMask };
 })();
