@@ -1,9 +1,9 @@
 // MyTools - modulo Configuracion (ajustes generales de la app, organizados por seccion)
 window.ConfiguracionModule = (function(){
-  const { escapeHtml, escapeAttr, api, moduleIcon } = window.App3;
+  const { escapeHtml, escapeAttr, capitalizeWords, api, moduleIcon } = window.App3;
 
   const COUNT_LABELS = {
-    empleados: 'Empleados', arqueos: 'Arqueos',
+    sucursales: 'Sucursales', empleados: 'Empleados', arqueos: 'Arqueos',
     planes: 'Planes', ventas: 'Ventas', enlaces: 'Enlaces',
   };
 
@@ -24,34 +24,63 @@ window.ConfiguracionModule = (function(){
 
       <div class="settings-col">
         <div class="section-title">General</div>
-        <div class="grid">
-          <div class="field full"><label>Localidad</label><input type="text" id="cfgCiudad" placeholder="Rosario"></div>
-        </div>
-        <div class="hint" style="margin-bottom:18px;">
-          Se usa para mostrar el clima actual en el encabezado. Necesita conexión a internet — si no hay,
-          el encabezado va a mostrar "Clima no disponible".
-        </div>
-        <button class="btn" id="saveBtn">Guardar cambios</button>
-        <span class="meta-note" id="savedNote" style="margin-left:10px;"></span>
-        <div class="hint" style="margin-top:14px;">Los empleados (usados también como vendedores en Control de Ventas) se gestionan desde "Sucursal y Empleados".</div>
 
-        <div class="section-title" style="margin-top:32px;">Arqueo de caja</div>
+        <div class="subsection-title">Sucursales</div>
+        <div class="cfg-list" id="cfgSucursales"></div>
+        <div class="cfg-add">
+          <input type="text" id="cfgSucNombre" placeholder="Nombre">
+          <input type="text" id="cfgSucCodigo" placeholder="Código interno">
+          <input type="text" id="cfgSucDireccion" placeholder="Dirección">
+          <button class="btn secondary small" id="cfgSucAddBtn">Agregar</button>
+        </div>
+
+        <div class="subsection-title">Empleados</div>
+        <div class="cfg-list" id="cfgEmpleados"></div>
+        <div class="cfg-add">
+          <input type="text" id="cfgEmpNombre" placeholder="Nombre">
+          <input type="text" id="cfgEmpApellido" placeholder="Apellido">
+          <input type="text" id="cfgEmpDni" placeholder="DNI">
+          <input type="text" id="cfgEmpTelefono" placeholder="Teléfono">
+          <input type="text" id="cfgEmpEmail" placeholder="Mail">
+          <input type="text" id="cfgEmpCodigo" placeholder="Código interno">
+          <button class="btn secondary small" id="cfgEmpAddBtn">Agregar</button>
+        </div>
+
+        <div class="section-title">Clima</div>
+
+        <div class="subsection-title">Unidades</div>
+        <div class="grid">
+          <div class="field"><label>Temperatura</label>
+            <select id="cfgUnidadTemp">
+              <option value="C">Celsius (°C)</option>
+              <option value="F">Fahrenheit (°F)</option>
+            </select>
+          </div>
+          <div class="field"><label>Presión</label>
+            <select id="cfgUnidadPresion">
+              <option value="hPa">hPa</option>
+              <option value="mmHg">mmHg</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="subsection-title">Ciudad</div>
+        <div class="grid">
+          <div class="field full"><input type="text" id="cfgCiudad" placeholder="Rosario"></div>
+        </div>
+
+        <button class="btn" id="saveClimaBtn" style="margin-top:12px;">Guardar cambios</button>
+        <span class="meta-note" id="climaSavedNote" style="margin-left:10px;"></span>
+
+        <div class="section-title">Arqueo de caja</div>
         <input type="file" id="arqueoImportInput" accept=".xlsx,.xls" style="display:none;">
         <div class="cfg-data-actions">
           <button class="btn secondary small" id="arqueoImportBtn">Importar Excel</button>
           <button class="btn secondary small" id="arqueoExportBtn">Exportar Excel</button>
         </div>
 
-        <div class="section-title" style="margin-top:32px;">Control de ventas</div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin:2px 0 14px;">Fibra óptica</div>
-
-        <label style="display:block;font-size:11.5px;color:var(--text-dim);font-weight:500;margin-bottom:6px;">Planes de internet (MB)</label>
-        <div class="cfg-list" id="cfgPlanes"></div>
-        <div class="cfg-add">
-          <input type="number" id="cfgPlanInput" min="0" step="1" placeholder="Ej: 300">
-          <button class="btn secondary small" id="cfgPlanAddBtn">Agregar</button>
-        </div>
-        <div class="hint" style="margin:10px 0 16px;">Más adelante se van a poder asociar precios a cada plan.</div>
+        <div class="section-title">Control de ventas</div>
+        <div class="subsection-title">Fibra óptica</div>
 
         <input type="file" id="fibraImportInput" accept=".xlsx,.xls" style="display:none;">
         <div class="cfg-data-actions">
@@ -59,7 +88,19 @@ window.ConfiguracionModule = (function(){
           <button class="btn secondary small" id="fibraExportBtn">Exportar Excel</button>
         </div>
 
-        <div class="section-title" style="margin-top:32px;">Acerca de esta instalación</div>
+        <label style="display:block;font-size:11.5px;color:var(--text-dim);font-weight:500;margin:18px 0 6px;">Planes de internet (MB)</label>
+        <div class="cfg-list" id="cfgPlanes"></div>
+        <div class="cfg-add">
+          <input type="number" id="cfgPlanInput" min="0" step="1" placeholder="Ej: 300">
+          <button class="btn secondary small" id="cfgPlanAddBtn">Agregar</button>
+        </div>
+
+        <div class="section-title">Acerca de esta instalación</div>
+        <div class="hint" style="margin-bottom:14px;">
+          MyTools es una herramienta interna de gestión para el negocio. Corre como servidor local
+          (Flask + SQLite) en esta máquina e incluye: Arqueo de Caja, Control de Ventas (Fibra óptica),
+          Enlaces útiles y esta Configuración general (sucursales, empleados y clima).
+        </div>
         <div class="stats" id="infoStats"></div>
         <div class="hint" id="infoPath" style="margin-top:10px;"></div>
       </div>
@@ -71,23 +112,116 @@ window.ConfiguracionModule = (function(){
     const $ = (id) => root.querySelector('#'+id);
     if(ctx && ctx.goTo) $('backHomeBtn').addEventListener('click', () => ctx.goTo('dashboard'));
 
+    let sucursales = [];
+    let empleados = [];
     let planes = [];
 
-    // ---------- General: localidad ----------
-    async function loadConfig(){
+    // ---------- General: sucursales ----------
+    async function loadSucursales(){
+      sucursales = await api('/api/sucursales');
+      renderSucursales();
+    }
+    function renderSucursales(){
+      $('cfgSucursales').innerHTML = sucursales.length
+        ? sucursales.map(s => `
+            <div class="cfg-item">
+              <span>${escapeHtml(s.nombre)}</span>
+              <span class="cfg-meta">${[s.codigoInterno, s.direccion].filter(Boolean).map(escapeHtml).join(' · ')}</span>
+              <button class="cfg-del" data-id="${escapeAttr(s.id)}" title="Quitar">&times;</button>
+            </div>
+          `).join('')
+        : `<div class="cfg-empty">Sin sucursales cargadas todavía.</div>`;
+      $('cfgSucursales').querySelectorAll('.cfg-del').forEach(btn => {
+        btn.addEventListener('click', () => removeSucursal(btn.dataset.id));
+      });
+    }
+    async function removeSucursal(id){
+      await api(`/api/sucursales/${id}`, { method:'DELETE' });
+      await loadSucursales();
+    }
+    async function addSucursal(){
+      const nombreInput = $('cfgSucNombre');
+      const codigoInput = $('cfgSucCodigo');
+      const direccionInput = $('cfgSucDireccion');
+      const nombre = nombreInput.value.trim();
+      if(!nombre) return;
+      await api('/api/sucursales', { method:'POST', body: {
+        nombre, codigoInterno: codigoInput.value.trim(), direccion: direccionInput.value.trim(),
+      }});
+      nombreInput.value = ''; codigoInput.value = ''; direccionInput.value = '';
+      await loadSucursales();
+    }
+    $('cfgSucAddBtn').addEventListener('click', addSucursal);
+    ['cfgSucNombre','cfgSucCodigo','cfgSucDireccion'].forEach(id => {
+      $(id).addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); addSucursal(); } });
+    });
+
+    // ---------- General: empleados ----------
+    async function loadEmpleados(){
+      empleados = await api('/api/empleados');
+      renderEmpleados();
+    }
+    function renderEmpleados(){
+      $('cfgEmpleados').innerHTML = empleados.length
+        ? empleados.map(e => `
+            <div class="cfg-item">
+              <span>${escapeHtml([e.nombre, e.apellido].filter(Boolean).join(' '))}</span>
+              <span class="cfg-meta">${[e.dni, e.telefono, e.email, e.codigoInterno].filter(Boolean).map(escapeHtml).join(' · ')}</span>
+              <button class="cfg-del" data-id="${escapeAttr(e.id)}" title="Quitar">&times;</button>
+            </div>
+          `).join('')
+        : `<div class="cfg-empty">Sin empleados cargados todavía.</div>`;
+      $('cfgEmpleados').querySelectorAll('.cfg-del').forEach(btn => {
+        btn.addEventListener('click', () => removeEmpleado(btn.dataset.id));
+      });
+    }
+    async function removeEmpleado(id){
+      await api(`/api/empleados/${id}`, { method:'DELETE' });
+      await loadEmpleados();
+    }
+    async function addEmpleado(){
+      const nombreInput = $('cfgEmpNombre');
+      const apellidoInput = $('cfgEmpApellido');
+      const dniInput = $('cfgEmpDni');
+      const telefonoInput = $('cfgEmpTelefono');
+      const emailInput = $('cfgEmpEmail');
+      const codigoInput = $('cfgEmpCodigo');
+      const nombre = capitalizeWords(nombreInput.value.trim());
+      const apellido = capitalizeWords(apellidoInput.value.trim());
+      if(!nombre) return;
+      await api('/api/empleados', { method:'POST', body: {
+        nombre, apellido, dni: dniInput.value.trim(), telefono: telefonoInput.value.trim(),
+        email: emailInput.value.trim(), codigoInterno: codigoInput.value.trim(),
+      }});
+      nombreInput.value=''; apellidoInput.value=''; dniInput.value='';
+      telefonoInput.value=''; emailInput.value=''; codigoInput.value='';
+      await loadEmpleados();
+    }
+    $('cfgEmpAddBtn').addEventListener('click', addEmpleado);
+    ['cfgEmpNombre','cfgEmpApellido','cfgEmpDni','cfgEmpTelefono','cfgEmpEmail','cfgEmpCodigo'].forEach(id => {
+      $(id).addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); addEmpleado(); } });
+    });
+
+    // ---------- Clima: unidades + ciudad ----------
+    async function loadClima(){
       const cfg = await api('/api/config');
       $('cfgCiudad').value = cfg.clima_ciudad || '';
+      $('cfgUnidadTemp').value = cfg.clima_unidad_temp || 'C';
+      $('cfgUnidadPresion').value = cfg.clima_unidad_presion || 'hPa';
     }
-
-    async function save(){
-      const payload = { clima_ciudad: $('cfgCiudad').value.trim() };
+    async function saveClima(){
+      const payload = {
+        clima_ciudad: $('cfgCiudad').value.trim(),
+        clima_unidad_temp: $('cfgUnidadTemp').value,
+        clima_unidad_presion: $('cfgUnidadPresion').value,
+      };
       await api('/api/config', { method:'PUT', body: payload });
       if(window.App3Shell) window.App3Shell.refreshHeader();
-      const note = $('savedNote');
+      const note = $('climaSavedNote');
       note.textContent = 'Guardado ✓';
       setTimeout(() => { note.textContent = ''; }, 2000);
     }
-    $('saveBtn').addEventListener('click', save);
+    $('saveClimaBtn').addEventListener('click', saveClima);
 
     // ---------- Arqueo de caja: importar/exportar ----------
     $('arqueoExportBtn').addEventListener('click', () => {
@@ -106,6 +240,28 @@ window.ConfiguracionModule = (function(){
       }catch(err){
         console.error(err);
         alert('No se pudo importar el archivo. Tiene que tener las mismas columnas que genera "Exportar Excel".');
+      }
+      e.target.value = '';
+    });
+
+    // ---------- Control de ventas / Fibra óptica: importar/exportar ----------
+    $('fibraExportBtn').addEventListener('click', () => {
+      window.location.href = '/api/fibra/export.xlsx';
+    });
+    $('fibraImportBtn').addEventListener('click', () => $('fibraImportInput').click());
+    $('fibraImportInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      try{
+        const fd = new FormData();
+        fd.append('file', file);
+        const result = await api('/api/fibra/import-excel', { method:'POST', body: fd });
+        await loadPlanes();
+        loadInfo();
+        alert(`Importación completa: ${result.added} ventas nuevas cargadas.` + (result.added ? ' Los vendedores y planes nuevos que traía el Excel se agregaron solos a la lista.' : ''));
+      }catch(err){
+        console.error(err);
+        alert('No se pudo importar el archivo. Tiene que tener las mismas columnas que genera "Exportar Excel" (los nombres de encabezado deben coincidir; el orden no importa).');
       }
       e.target.value = '';
     });
@@ -139,28 +295,6 @@ window.ConfiguracionModule = (function(){
     $('cfgPlanAddBtn').addEventListener('click', addPlan);
     $('cfgPlanInput').addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); addPlan(); } });
 
-    // ---------- Control de ventas / Fibra óptica: importar/exportar ----------
-    $('fibraExportBtn').addEventListener('click', () => {
-      window.location.href = '/api/fibra/export.xlsx';
-    });
-    $('fibraImportBtn').addEventListener('click', () => $('fibraImportInput').click());
-    $('fibraImportInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if(!file) return;
-      try{
-        const fd = new FormData();
-        fd.append('file', file);
-        const result = await api('/api/fibra/import-excel', { method:'POST', body: fd });
-        await loadPlanes();
-        loadInfo();
-        alert(`Importación completa: ${result.added} ventas nuevas cargadas.` + (result.added ? ' Los vendedores y planes nuevos que traía el Excel se agregaron solos a la lista.' : ''));
-      }catch(err){
-        console.error(err);
-        alert('No se pudo importar el archivo. Tiene que tener las mismas columnas que genera "Exportar Excel" (los nombres de encabezado deben coincidir; el orden no importa).');
-      }
-      e.target.value = '';
-    });
-
     // ---------- Acerca de esta instalación ----------
     async function loadInfo(){
       const info = await api('/api/config/info');
@@ -170,7 +304,9 @@ window.ConfiguracionModule = (function(){
       $('infoPath').textContent = `Base de datos: ${info.dbPath} (${info.dbSizeKb} KB)`;
     }
 
-    loadConfig();
+    loadSucursales();
+    loadEmpleados();
+    loadClima();
     loadPlanes();
     loadInfo();
   }

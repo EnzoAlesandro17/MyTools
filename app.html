@@ -27,7 +27,6 @@
 <script src="/modules/arqueo-caja/arqueo.js"></script>
 <script src="/modules/control-ventas/control-ventas.js"></script>
 <script src="/modules/control-fibra/fibra.js"></script>
-<script src="/modules/sucursal/sucursal.js"></script>
 <script src="/modules/enlaces/enlaces.js"></script>
 <script src="/modules/configuracion/configuracion.js"></script>
 <script>
@@ -40,7 +39,6 @@
   // "Control de Ventas" es un hub: agrupa sus propias sub-secciones (hoy solo
   // Fibra óptica) en modules/control-ventas/control-ventas.js, no en esta lista.
   const SECTIONS = [
-    { id: 'sucursal', code: 'SE', label: 'Sucursal y Empleados', desc: 'Datos del negocio y equipo de trabajo', module: () => window.SucursalModule },
     { id: 'enlaces', code: 'EN', label: 'Enlaces útiles', desc: 'Links y páginas de referencia guardadas', module: () => window.EnlacesModule },
     { id: 'arqueo', code: 'AR', label: 'Arqueo de Caja', desc: 'Registro de arqueos por turno', module: () => window.ArqueoModule },
     { id: 'ventas', code: 'CV', label: 'Control de Ventas', desc: 'Gestión de ventas y servicios', module: () => window.ControlVentasModule },
@@ -76,8 +74,9 @@
     }catch(e){ /* si falla, se queda con el nombre por defecto */ }
     try{
       const w = await window.App3.api('/api/weather');
-      const temp = (w.temp !== undefined && w.temp !== null) ? Math.round(w.temp) + '°C' : '';
-      document.getElementById('shellWeather').textContent = `${w.icon || '🌡️'} ${temp} ${w.desc || ''} · ${w.ciudad || ''}`.trim();
+      const temp = (w.temp !== undefined && w.temp !== null) ? `${Math.round(w.temp)}°${w.unidadTemp || 'C'}` : '';
+      const presion = (w.presion !== undefined && w.presion !== null) ? `${w.presion} ${w.unidadPresion || 'hPa'}` : '';
+      document.getElementById('shellWeather').textContent = `${w.icon || '🌡️'} ${temp} ${w.desc || ''}${presion ? ' · ' + presion : ''} · ${w.ciudad || ''}`.trim();
     }catch(e){
       document.getElementById('shellWeather').textContent = 'Clima no disponible';
     }

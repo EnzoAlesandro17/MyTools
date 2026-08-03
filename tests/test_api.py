@@ -36,6 +36,52 @@ def test_empleados_delete(client):
     assert client.get('/api/empleados').get_json() == []
 
 
+def test_empleados_create_with_extra_fields(client):
+    resp = client.post('/api/empleados', json={
+        'nombre': 'Juan', 'apellido': 'Pérez', 'dni': '30111222',
+        'telefono': '3411234567', 'email': 'juan@test.com', 'codigoInterno': 'EMP1',
+    })
+    assert resp.status_code == 201
+    body = resp.get_json()
+    assert body['apellido'] == 'Pérez'
+    assert body['codigoInterno'] == 'EMP1'
+    assert 'rol' not in body
+
+
+def test_empleados_dedupe_allows_same_name_different_apellido(client):
+    client.post('/api/empleados', json={'nombre': 'Juan', 'apellido': 'Pérez'})
+    resp = client.post('/api/empleados', json={'nombre': 'Juan', 'apellido': 'Gómez'})
+    assert resp.status_code == 201
+    assert len(client.get('/api/empleados').get_json()) == 2
+
+
+# ---------------------------------------------------------------- sucursales
+
+def test_sucursales_create_and_list(client):
+    resp = client.post('/api/sucursales', json={
+        'nombre': 'Casa Central', 'codigoInterno': 'CC1', 'direccion': 'San Martín 123',
+    })
+    assert resp.status_code == 201
+    body = resp.get_json()
+    assert body['nombre'] == 'Casa Central'
+    assert body['direccion'] == 'San Martín 123'
+
+    resp = client.get('/api/sucursales')
+    assert [s['nombre'] for s in resp.get_json()] == ['Casa Central']
+
+
+def test_sucursales_create_requires_nombre(client):
+    resp = client.post('/api/sucursales', json={'nombre': ''})
+    assert resp.status_code == 400
+
+
+def test_sucursales_delete(client):
+    created = client.post('/api/sucursales', json={'nombre': 'Casa Central'}).get_json()
+    resp = client.delete(f"/api/sucursales/{created['id']}")
+    assert resp.status_code == 204
+    assert client.get('/api/sucursales').get_json() == []
+
+
 # ------------------------------------------------------------------ arqueo
 
 def test_arqueo_create_computes_resultado(client):

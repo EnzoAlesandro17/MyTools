@@ -47,11 +47,23 @@ def close_db(_exc):
         db.close()
 
 
+def migrate_db(conn):
+    """Agrega columnas nuevas a bases ya existentes (CREATE TABLE IF NOT EXISTS
+    no las suma solo). Cada ALTER se aplica una sola vez, comprobando antes si
+    la columna ya existe."""
+    cols = {r['name'] for r in conn.execute('PRAGMA table_info(empleados)')}
+    for col in ('apellido', 'dni', 'telefono', 'email', 'codigo_interno'):
+        if col not in cols:
+            conn.execute(f'ALTER TABLE empleados ADD COLUMN {col} TEXT')
+    conn.commit()
+
+
 def init_db():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA_PATH.read_text(encoding='utf-8'))
-    conn.commit()
+    migrate_db(conn)
     conn.close()
 
 
@@ -110,11 +122,60 @@ def module_files(filename):
 
 
 # ===========================================================================
-# Empleados (compartido - se gestionan desde Sucursal y Empleados)
+# Sucursales (se gestionan desde Configuracion > General)
+# ===========================================================================
+
+def row_to_sucursal(row):
+    return {
+        'id': row['id'], 'nombre': row['nombre'],
+        'codigoInterno': row['codigo_interno'] or '', 'direccion': row['direccion'] or '',
+    }
+
+
+@app.get('/api/sucursales')
+def sucursales_list():
+    db = get_db()
+    rows = db.execute('SELECT * FROM sucursales ORDER BY nombre COLLATE NOCASE').fetchall()
+    return jsonify([row_to_sucursal(r) for r in rows])
+
+
+@app.post('/api/sucursales')
+def sucursales_create():
+    data = request.get_json(force=True, silent=True) or {}
+    nombre = (data.get('nombre') or '').strip()
+    if not nombre:
+        return bad_request('nombre requerido')
+    codigo_interno = (data.get('codigoInterno') or '').strip()
+    direccion = (data.get('direccion') or '').strip()
+    db = get_db()
+    sid = new_id()
+    db.execute(
+        'INSERT INTO sucursales (id, nombre, codigo_interno, direccion) VALUES (?, ?, ?, ?)',
+        (sid, nombre, codigo_interno, direccion),
+    )
+    db.commit()
+    row = db.execute('SELECT * FROM sucursales WHERE id = ?', (sid,)).fetchone()
+    return jsonify(row_to_sucursal(row)), 201
+
+
+@app.delete('/api/sucursales/<sid>')
+def sucursales_delete(sid):
+    db = get_db()
+    db.execute('DELETE FROM sucursales WHERE id = ?', (sid,))
+    db.commit()
+    return '', 204
+
+
+# ===========================================================================
+# Empleados (compartido - se gestionan desde Configuracion > General)
 # ===========================================================================
 
 def row_to_empleado(row):
-    return {'id': row['id'], 'nombre': row['nombre'], 'rol': row['rol']}
+    return {
+        'id': row['id'], 'nombre': row['nombre'], 'apellido': row['apellido'] or '',
+        'dni': row['dni'] or '', 'telefono': row['telefono'] or '', 'email': row['email'] or '',
+        'codigoInterno': row['codigo_interno'] or '',
+    }
 
 
 @app.get('/api/empleados')
@@ -128,19 +189,29 @@ def empleados_list():
 def empleados_create():
     data = request.get_json(force=True, silent=True) or {}
     nombre = (data.get('nombre') or '').strip()
-    rol = (data.get('rol') or '').strip()
+    apellido = (data.get('apellido') or '').strip()
+    dni = (data.get('dni') or '').strip()
+    telefono = (data.get('telefono') or '').strip()
+    email = (data.get('email') or '').strip()
+    codigo_interno = (data.get('codigoInterno') or '').strip()
     if not nombre:
         return bad_request('nombre requerido')
     db = get_db()
     existing = db.execute(
-        'SELECT * FROM empleados WHERE nombre = ? COLLATE NOCASE', (nombre,)
+        'SELECT * FROM empleados WHERE nombre = ? COLLATE NOCASE AND apellido = ? COLLATE NOCASE',
+        (nombre, apellido),
     ).fetchone()
     if existing:
         return jsonify(row_to_empleado(existing))
     eid = new_id()
-    db.execute('INSERT INTO empleados (id, nombre, rol) VALUES (?, ?, ?)', (eid, nombre, rol))
+    db.execute(
+        '''INSERT INTO empleados (id, nombre, apellido, dni, telefono, email, codigo_interno)
+           VALUES (?, ?, ?, ?, ?, ?, ?)''',
+        (eid, nombre, apellido, dni, telefono, email, codigo_interno),
+    )
     db.commit()
-    return jsonify({'id': eid, 'nombre': nombre, 'rol': rol}), 201
+    row = db.execute('SELECT * FROM empleados WHERE id = ?', (eid,)).fetchone()
+    return jsonify(row_to_empleado(row)), 201
 
 
 @app.delete('/api/empleados/<eid>')
@@ -343,7 +414,7 @@ def arqueo_import_excel():
         save_arqueo_empleados(db, aid, empleados)
         for nombre in empleados:
             if not db.execute('SELECT id FROM empleados WHERE nombre = ? COLLATE NOCASE', (nombre,)).fetchone():
-                db.execute('INSERT INTO empleados (id, nombre, rol) VALUES (?, ?, ?)', (new_id(), nombre, ''))
+                db.execute('INSERT INTO empleados (id, nombre) VALUES (?, ?)', (new_id(), nombre))
         added += 1
 
     db.commit()
@@ -649,7 +720,7 @@ def fibra_import_excel():
         if rec['vendedor'] and not db.execute(
             'SELECT id FROM empleados WHERE nombre = ? COLLATE NOCASE', (rec['vendedor'],)
         ).fetchone():
-            db.execute('INSERT INTO empleados (id, nombre, rol) VALUES (?, ?, ?)', (new_id(), rec['vendedor'], ''))
+            db.execute('INSERT INTO empleados (id, nombre) VALUES (?, ?)', (new_id(), rec['vendedor']))
         if rec.get('plan'):
             try:
                 mb = int(rec['plan'])
@@ -743,10 +814,11 @@ def enlaces_delete(eid):
 
 CONFIG_DEFAULTS = {
     'nombre_negocio': 'MyTools',
-    'nombre_sucursal': '',
     'clima_ciudad': 'Rosario',
     'clima_lat': '-32.9468',
     'clima_lon': '-60.6393',
+    'clima_unidad_temp': 'C',
+    'clima_unidad_presion': 'hPa',
 }
 
 WEATHER_CODES = {
@@ -795,7 +867,7 @@ def config_put():
 def config_info():
     db = get_db()
     counts = {}
-    for table in ('empleados', 'arqueos', 'planes', 'ventas', 'enlaces'):
+    for table in ('sucursales', 'empleados', 'arqueos', 'planes', 'ventas', 'enlaces'):
         counts[table] = db.execute(f'SELECT count(*) c FROM {table}').fetchone()['c']
     size = DB_PATH.stat().st_size if DB_PATH.exists() else 0
     return jsonify({'dbPath': str(DB_PATH), 'dbSizeKb': round(size / 1024, 1), 'counts': counts})
@@ -807,21 +879,31 @@ def weather():
     cfg = get_config_dict(db)
     lat = request.args.get('lat') or cfg['clima_lat']
     lon = request.args.get('lon') or cfg['clima_lon']
-    params = urllib.parse.urlencode({'latitude': lat, 'longitude': lon, 'current_weather': 'true'})
-    url = f'https://api.open-meteo.com/v1/forecast?{params}'
+    unidad_temp = cfg.get('clima_unidad_temp') or 'C'
+    unidad_presion = cfg.get('clima_unidad_presion') or 'hPa'
+    params = {'latitude': lat, 'longitude': lon, 'current': 'temperature_2m,weathercode,surface_pressure'}
+    if unidad_temp == 'F':
+        params['temperature_unit'] = 'fahrenheit'
+    url = f'https://api.open-meteo.com/v1/forecast?{urllib.parse.urlencode(params)}'
     try:
         with urllib.request.urlopen(url, timeout=4) as resp:
             data = json.loads(resp.read().decode('utf-8'))
     except (urllib.error.URLError, TimeoutError, ValueError):
         return jsonify({'error': 'clima no disponible'}), 503
-    current = data.get('current_weather') or {}
+    current = data.get('current') or {}
     code = current.get('weathercode')
     desc, icon = WEATHER_CODES.get(code, ('', '🌡️'))
+    presion = current.get('surface_pressure')
+    if presion is not None and unidad_presion == 'mmHg':
+        presion = round(presion * 0.750062, 1)
     return jsonify({
-        'temp': current.get('temperature'),
+        'temp': current.get('temperature_2m'),
+        'unidadTemp': unidad_temp,
         'code': code,
         'desc': desc,
         'icon': icon,
+        'presion': presion,
+        'unidadPresion': unidad_presion,
         'ciudad': cfg['clima_ciudad'],
     })
 

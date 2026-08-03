@@ -292,6 +292,8 @@ tbody tr.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;}
   font-weight:700;margin:22px 0 12px;
 }
 .section-title:first-child{margin-top:0;}
+.subsection-title{font-size:13px;font-weight:700;color:var(--text);margin:2px 0 14px;}
+.subsection-title:not(:first-of-type){margin-top:26px;}
 .settings-col{max-width:640px;}
 .settings-col .cfg-add{max-width:100%;}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;}
@@ -389,7 +391,7 @@ tbody tr.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;}
   display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--border);
   border-radius:100px;padding:6px 8px 6px 12px;font-size:12.5px;color:var(--text);
 }
-.cfg-item .cfg-rol{color:var(--text-faint);font-size:11px;}
+.cfg-item .cfg-meta{color:var(--text-faint);font-size:11px;}
 .cfg-item .cfg-del{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;}
 .cfg-item .cfg-del:hover{color:var(--red);}
 .cfg-empty{color:var(--text-faint);font-size:12.5px;margin-bottom:10px;}

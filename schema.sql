@@ -1,10 +1,22 @@
 -- MyTools: base unica (arqueo de caja + control de fibra)
 
+-- ---------- Configuracion / General ----------
+CREATE TABLE IF NOT EXISTS sucursales (
+  id TEXT PRIMARY KEY,
+  nombre TEXT NOT NULL,
+  codigo_interno TEXT,
+  direccion TEXT
+);
+
 -- ---------- Arqueo de caja ----------
 CREATE TABLE IF NOT EXISTS empleados (
   id TEXT PRIMARY KEY,
   nombre TEXT NOT NULL,
-  rol TEXT
+  apellido TEXT,
+  dni TEXT,
+  telefono TEXT,
+  email TEXT,
+  codigo_interno TEXT
 );
 
 CREATE TABLE IF NOT EXISTS arqueos (

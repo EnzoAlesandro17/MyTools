@@ -47,14 +47,6 @@ window.DashboardModule = (function(){
         { n: sinPactar, l: 'Sin pactar' },
       ];
     },
-    sucursal: async function(){
-      const empleados = await api('/api/empleados');
-      const roles = new Set(empleados.map(e => e.rol).filter(Boolean));
-      return [
-        { n: empleados.length, l: 'Empleados' },
-        { n: roles.size, l: 'Roles distintos' },
-      ];
-    },
     enlaces: async function(){
       const enlaces = await api('/api/enlaces');
       const categorias = new Set(enlaces.map(e => e.categoria).filter(Boolean));
