@@ -30,6 +30,12 @@ window.ArqueoModule = (function(){
         <button class="btn" id="newBtn">+ Nuevo arqueo</button>
       </div>
 
+      <div class="month-nav">
+        <button class="btn secondary small" id="prevMonthBtn">‹ Mes anterior</button>
+        <span class="lbl" id="monthNavLbl"></span>
+        <button class="btn secondary small" id="nextMonthBtn">Mes siguiente ›</button>
+      </div>
+
       <div class="table-wrap">
         <table id="table" class="table-fixed">
           <thead>
@@ -47,14 +53,8 @@ window.ArqueoModule = (function(){
         </table>
         <div class="empty" id="emptyState" style="display:none;">
           <div class="big">No hay arqueos cargados para este mes</div>
-          <div>Usá "Nuevo arqueo" o cambiá de mes con las flechas de abajo.</div>
+          <div>Usá "Nuevo arqueo" o cambiá de mes con las flechas de arriba.</div>
         </div>
-      </div>
-
-      <div class="month-nav">
-        <button class="btn secondary small" id="prevMonthBtn">‹ Mes anterior</button>
-        <span class="lbl" id="monthNavLbl"></span>
-        <button class="btn secondary small" id="nextMonthBtn">Mes siguiente ›</button>
       </div>
     </div>
 

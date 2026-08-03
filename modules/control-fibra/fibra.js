@@ -49,6 +49,12 @@ window.FibraModule = (function(){
         <button class="btn" id="newBtn">+ Nueva venta</button>
       </div>
 
+      <div class="month-nav">
+        <button class="btn secondary small" id="prevMonthBtn">‹ Mes anterior</button>
+        <span class="lbl" id="monthNavLbl"></span>
+        <button class="btn secondary small" id="nextMonthBtn">Mes siguiente ›</button>
+      </div>
+
       <div class="table-wrap">
         <table id="table">
           <thead>
@@ -71,14 +77,8 @@ window.FibraModule = (function(){
         </table>
         <div class="empty" id="emptyState" style="display:none;">
           <div class="big">No hay ventas cargadas para este mes</div>
-          <div>Usá "Nueva venta" o cambiá de mes con las flechas de abajo.</div>
+          <div>Usá "Nueva venta" o cambiá de mes con las flechas de arriba.</div>
         </div>
-      </div>
-
-      <div class="month-nav">
-        <button class="btn secondary small" id="prevMonthBtn">‹ Mes anterior</button>
-        <span class="lbl" id="monthNavLbl"></span>
-        <button class="btn secondary small" id="nextMonthBtn">Mes siguiente ›</button>
       </div>
     </div>
 
