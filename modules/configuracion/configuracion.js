@@ -23,86 +23,100 @@ window.ConfiguracionModule = (function(){
       <div class="fiber-line"></div>
 
       <div class="settings-col">
-        <div class="section-title">General</div>
 
-        <div class="subsection-title">Sucursales</div>
-        <div class="cfg-list" id="cfgSucursales"></div>
-        <div class="cfg-add">
-          <input type="text" id="cfgSucNombre" placeholder="Nombre">
-          <input type="text" id="cfgSucCodigo" placeholder="Código interno">
-          <input type="text" id="cfgSucDireccion" placeholder="Dirección">
-          <button class="btn secondary small" id="cfgSucAddBtn">Agregar</button>
-        </div>
+        <div class="cfg-card">
+          <div class="section-title">General</div>
 
-        <div class="subsection-title">Empleados</div>
-        <div class="cfg-list" id="cfgEmpleados"></div>
-        <div class="cfg-add">
-          <input type="text" id="cfgEmpNombre" placeholder="Nombre">
-          <input type="text" id="cfgEmpApellido" placeholder="Apellido">
-          <input type="text" id="cfgEmpDni" placeholder="DNI">
-          <input type="text" id="cfgEmpTelefono" placeholder="Teléfono">
-          <input type="text" id="cfgEmpEmail" placeholder="Mail">
-          <input type="text" id="cfgEmpCodigo" placeholder="Código interno">
-          <button class="btn secondary small" id="cfgEmpAddBtn">Agregar</button>
-        </div>
-
-        <div class="section-title">Clima</div>
-
-        <div class="subsection-title">Unidades</div>
-        <div class="grid">
-          <div class="field"><label>Temperatura</label>
-            <select id="cfgUnidadTemp">
-              <option value="C">Celsius (°C)</option>
-              <option value="F">Fahrenheit (°F)</option>
-            </select>
+          <div class="subsection-title">Sucursales</div>
+          <div class="cfg-list" id="cfgSucursales"></div>
+          <div class="grid cols-3">
+            <div class="field"><label>Nombre</label><input type="text" id="cfgSucNombre" placeholder="Ej: Casa Central"></div>
+            <div class="field"><label>Código interno</label><input type="text" id="cfgSucCodigo" placeholder="Ej: CC1"></div>
+            <div class="field"><label>Dirección</label><input type="text" id="cfgSucDireccion" placeholder="Ej: San Martín 1234"></div>
           </div>
-          <div class="field"><label>Presión</label>
-            <select id="cfgUnidadPresion">
-              <option value="hPa">hPa</option>
-              <option value="mmHg">mmHg</option>
-            </select>
+          <button class="btn secondary small" id="cfgSucAddBtn" style="margin-top:12px;">Agregar sucursal</button>
+
+          <div class="subsection-title">Empleados</div>
+          <div class="cfg-list" id="cfgEmpleados"></div>
+          <div class="grid cols-3">
+            <div class="field"><label>Nombre</label><input type="text" id="cfgEmpNombre" placeholder="Nombre"></div>
+            <div class="field"><label>Apellido</label><input type="text" id="cfgEmpApellido" placeholder="Apellido"></div>
+            <div class="field"><label>DNI</label><input type="text" id="cfgEmpDni" placeholder="DNI"></div>
+            <div class="field"><label>Teléfono</label><input type="text" id="cfgEmpTelefono" placeholder="Teléfono"></div>
+            <div class="field"><label>Mail</label><input type="text" id="cfgEmpEmail" placeholder="Mail"></div>
+            <div class="field"><label>Código interno</label><input type="text" id="cfgEmpCodigo" placeholder="Código interno"></div>
+          </div>
+          <button class="btn secondary small" id="cfgEmpAddBtn" style="margin-top:12px;">Agregar empleado</button>
+        </div>
+
+        <div class="cfg-card">
+          <div class="section-title">Clima</div>
+
+          <div class="subsection-title">Unidades</div>
+          <div class="grid">
+            <div class="field"><label>Temperatura</label>
+              <select id="cfgUnidadTemp">
+                <option value="C">Celsius (°C)</option>
+                <option value="F">Fahrenheit (°F)</option>
+              </select>
+            </div>
+            <div class="field"><label>Presión</label>
+              <select id="cfgUnidadPresion">
+                <option value="hPa">hPa</option>
+                <option value="mmHg">mmHg</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="subsection-title">Ciudad</div>
+          <div class="grid">
+            <div class="field full"><input type="text" id="cfgCiudad" placeholder="Rosario"></div>
+          </div>
+
+          <div class="cfg-card-foot">
+            <button class="btn" id="saveClimaBtn">Guardar cambios</button>
+            <span class="meta-note" id="climaSavedNote"></span>
           </div>
         </div>
 
-        <div class="subsection-title">Ciudad</div>
-        <div class="grid">
-          <div class="field full"><input type="text" id="cfgCiudad" placeholder="Rosario"></div>
+        <div class="cfg-card">
+          <div class="section-title">Arqueo de caja</div>
+          <input type="file" id="arqueoImportInput" accept=".xlsx,.xls" style="display:none;">
+          <div class="cfg-data-actions">
+            <button class="btn secondary small" id="arqueoImportBtn">Importar Excel</button>
+            <button class="btn secondary small" id="arqueoExportBtn">Exportar Excel</button>
+          </div>
         </div>
 
-        <button class="btn" id="saveClimaBtn" style="margin-top:12px;">Guardar cambios</button>
-        <span class="meta-note" id="climaSavedNote" style="margin-left:10px;"></span>
+        <div class="cfg-card">
+          <div class="section-title">Control de ventas</div>
+          <div class="subsection-title">Fibra óptica</div>
 
-        <div class="section-title">Arqueo de caja</div>
-        <input type="file" id="arqueoImportInput" accept=".xlsx,.xls" style="display:none;">
-        <div class="cfg-data-actions">
-          <button class="btn secondary small" id="arqueoImportBtn">Importar Excel</button>
-          <button class="btn secondary small" id="arqueoExportBtn">Exportar Excel</button>
+          <input type="file" id="fibraImportInput" accept=".xlsx,.xls" style="display:none;">
+          <div class="cfg-data-actions">
+            <button class="btn secondary small" id="fibraImportBtn">Importar Excel</button>
+            <button class="btn secondary small" id="fibraExportBtn">Exportar Excel</button>
+          </div>
+
+          <div class="subsection-title">Planes de internet (MB)</div>
+          <div class="cfg-list" id="cfgPlanes"></div>
+          <div class="grid">
+            <div class="field"><input type="number" id="cfgPlanInput" min="0" step="1" placeholder="Ej: 300"></div>
+          </div>
+          <button class="btn secondary small" id="cfgPlanAddBtn" style="margin-top:12px;">Agregar plan</button>
         </div>
 
-        <div class="section-title">Control de ventas</div>
-        <div class="subsection-title">Fibra óptica</div>
-
-        <input type="file" id="fibraImportInput" accept=".xlsx,.xls" style="display:none;">
-        <div class="cfg-data-actions">
-          <button class="btn secondary small" id="fibraImportBtn">Importar Excel</button>
-          <button class="btn secondary small" id="fibraExportBtn">Exportar Excel</button>
+        <div class="cfg-card">
+          <div class="section-title">Acerca de esta instalación</div>
+          <div class="hint" style="margin-bottom:16px;">
+            MyTools es una herramienta interna de gestión para el negocio. Corre como servidor local
+            (Flask + SQLite) en esta máquina e incluye: Arqueo de Caja, Control de Ventas (Fibra óptica),
+            Enlaces útiles y esta Configuración general (sucursales, empleados y clima).
+          </div>
+          <div class="stats" id="infoStats"></div>
+          <div class="hint" id="infoPath" style="margin-top:12px;"></div>
         </div>
 
-        <label style="display:block;font-size:11.5px;color:var(--text-dim);font-weight:500;margin:18px 0 6px;">Planes de internet (MB)</label>
-        <div class="cfg-list" id="cfgPlanes"></div>
-        <div class="cfg-add">
-          <input type="number" id="cfgPlanInput" min="0" step="1" placeholder="Ej: 300">
-          <button class="btn secondary small" id="cfgPlanAddBtn">Agregar</button>
-        </div>
-
-        <div class="section-title">Acerca de esta instalación</div>
-        <div class="hint" style="margin-bottom:14px;">
-          MyTools es una herramienta interna de gestión para el negocio. Corre como servidor local
-          (Flask + SQLite) en esta máquina e incluye: Arqueo de Caja, Control de Ventas (Fibra óptica),
-          Enlaces útiles y esta Configuración general (sucursales, empleados y clima).
-        </div>
-        <div class="stats" id="infoStats"></div>
-        <div class="hint" id="infoPath" style="margin-top:10px;"></div>
       </div>
     </div>
   `;
