@@ -81,9 +81,11 @@ body{
 }
 .shell-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .shell-brand{
+  display:flex;align-items:center;gap:6px;
   font-family:var(--display);font-size:25px;font-weight:800;letter-spacing:-.02em;color:#ffffff;
   background:none;border:none;padding:0;cursor:pointer;
 }
+.shell-brand svg{flex:0 0 auto;}
 .shell-brand:hover{color:rgba(255,255,255,.8);}
 .shell-date, .shell-weather{
   font-size:14px;font-weight:600;color:rgba(255,255,255,.92);padding-left:16px;border-left:1px solid rgba(255,255,255,.4);
@@ -95,11 +97,17 @@ body{
 }
 .shell-weather .weather-chevron{color:rgba(255,255,255,.5);margin-left:2px;}
 .shell-weather .weather-btn:hover .weather-chevron{color:rgba(255,255,255,.9);}
+.shell-right{display:flex;align-items:center;gap:18px;flex:0 0 auto;}
 .shell-status{
   display:flex;align-items:center;gap:8px;flex:0 0 auto;
   font-size:13px;font-weight:600;color:rgba(255,255,255,.92);
 }
 .shell-status .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;flex:0 0 auto;}
+.shell-settings-btn{
+  display:flex;align-items:center;justify-content:center;background:none;border:none;padding:4px;
+  color:rgba(255,255,255,.85);cursor:pointer;border-radius:8px;line-height:0;
+}
+.shell-settings-btn:hover{color:#ffffff;background:rgba(255,255,255,.12);}
 
 .back-home-btn{
   display:inline-flex;align-items:center;gap:5px;background:none;border:none;color:var(--text-faint);

@@ -10,11 +10,36 @@
 <header class="shell-header-band">
   <div class="wrap shell-head">
     <div class="shell-left">
-      <button class="shell-brand" id="shellBrand" title="Ir a Inicio">MyTools</button>
+      <button class="shell-brand" id="shellBrand" title="Ir a Inicio">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <path d="M4 11.5 L12 4.5 L20 11.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 10.5 V19 A1 1 0 0 0 7 20 H17 A1 1 0 0 0 18 19 V10.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <rect x="10.3" y="14" width="3.4" height="6" rx="0.4" stroke="currentColor" stroke-width="1.6" fill="none"/>
+        </svg>
+        <span id="shellBrandText">MyTools</span>
+      </button>
       <div class="shell-date" id="shellDate"></div>
       <div class="shell-weather" id="shellWeather">Cargando clima…</div>
     </div>
-    <div class="shell-status"><span class="dot"></span> Conectado a la base local (data/mytools.db)</div>
+    <div class="shell-right">
+      <div class="shell-status"><span class="dot"></span> Conectado a la base local (data/mytools.db)</div>
+      <button class="shell-settings-btn" id="shellSettingsBtn" title="Configuración" aria-label="Configuración">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <g fill="currentColor">
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(45 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(90 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(135 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(180 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(225 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(270 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(315 12 12)"/>
+          </g>
+          <circle cx="12" cy="12" r="6.1" stroke="currentColor" stroke-width="2.2"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -54,13 +79,14 @@
     { id: 'enlaces', code: 'EN', label: 'Enlaces útiles', desc: 'Links y páginas de referencia guardadas', module: () => window.EnlacesModule },
     { id: 'arqueo', code: 'AR', label: 'Arqueo de Caja', desc: 'Registro de arqueos por turno', module: () => window.ArqueoModule },
     { id: 'ventas', code: 'CV', label: 'Control de Ventas', desc: 'Gestión de ventas y servicios', module: () => window.ControlVentasModule },
-    { id: 'config', code: 'CO', label: 'Configuración', desc: 'Ajustes generales de la aplicación', module: () => window.ConfiguracionModule },
   ];
 
   // Modulos anidados: no aparecen como tarjeta en Inicio, solo son alcanzables
   // desde el hub que los contiene (ctx.goTo sigue funcionando igual para ellos).
+  // Configuracion se alcanza desde la tuerca del encabezado, no como tarjeta.
   const NESTED_MODULES = {
     fibra: window.FibraModule,
+    config: window.ConfiguracionModule,
   };
 
   const MODULES = { dashboard: window.DashboardModule, ...NESTED_MODULES };
@@ -77,12 +103,13 @@
   }
 
   document.getElementById('shellBrand').addEventListener('click', () => activate('dashboard'));
+  document.getElementById('shellSettingsBtn').addEventListener('click', () => activate('config'));
 
   async function refreshHeader(){
     document.getElementById('shellDate').textContent = window.App3.fmtDateLong(new Date());
     try{
       const cfg = await window.App3.api('/api/config');
-      document.getElementById('shellBrand').textContent = cfg.nombre_negocio || 'MyTools';
+      document.getElementById('shellBrandText').textContent = cfg.nombre_negocio || 'MyTools';
     }catch(e){ /* si falla, se queda con el nombre por defecto */ }
     try{
       const w = await window.App3.api('/api/weather');
