@@ -908,6 +908,45 @@ def weather():
     })
 
 
+@app.get('/api/weather/forecast')
+def weather_forecast():
+    db = get_db()
+    cfg = get_config_dict(db)
+    lat = request.args.get('lat') or cfg['clima_lat']
+    lon = request.args.get('lon') or cfg['clima_lon']
+    unidad_temp = cfg.get('clima_unidad_temp') or 'C'
+    params = {
+        'latitude': lat, 'longitude': lon, 'timezone': 'auto', 'forecast_days': 7,
+        'daily': 'weathercode,temperature_2m_max,temperature_2m_min',
+    }
+    if unidad_temp == 'F':
+        params['temperature_unit'] = 'fahrenheit'
+    url = f'https://api.open-meteo.com/v1/forecast?{urllib.parse.urlencode(params)}'
+    try:
+        with urllib.request.urlopen(url, timeout=4) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        return jsonify({'error': 'clima no disponible'}), 503
+    daily = data.get('daily') or {}
+    fechas = daily.get('time') or []
+    codes = daily.get('weathercode') or []
+    maxs = daily.get('temperature_2m_max') or []
+    mins = daily.get('temperature_2m_min') or []
+    dias = []
+    for i, fecha in enumerate(fechas):
+        code = codes[i] if i < len(codes) else None
+        desc, icon = WEATHER_CODES.get(code, ('', '🌡️'))
+        dias.append({
+            'fecha': fecha,
+            'code': code,
+            'desc': desc,
+            'icon': icon,
+            'tempMax': maxs[i] if i < len(maxs) else None,
+            'tempMin': mins[i] if i < len(mins) else None,
+        })
+    return jsonify({'unidadTemp': unidad_temp, 'ciudad': cfg['clima_ciudad'], 'dias': dias})
+
+
 if __name__ == '__main__':
     init_db()
     app.run(host='127.0.0.1', port=5000, debug=False)

@@ -89,6 +89,12 @@ body{
   font-size:14px;font-weight:600;color:rgba(255,255,255,.92);padding-left:16px;border-left:1px solid rgba(255,255,255,.4);
   white-space:nowrap;
 }
+.shell-weather .weather-btn{
+  background:none;border:none;padding:0;margin:0;font:inherit;font-weight:inherit;color:inherit;
+  cursor:pointer;text-align:left;
+}
+.shell-weather .weather-chevron{color:rgba(255,255,255,.5);margin-left:2px;}
+.shell-weather .weather-btn:hover .weather-chevron{color:rgba(255,255,255,.9);}
 .shell-status{
   display:flex;align-items:center;gap:8px;flex:0 0 auto;
   font-size:13px;font-weight:600;color:rgba(255,255,255,.92);
@@ -267,6 +273,19 @@ tbody tr.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;}
   padding:4px 0 14px;
 }
 .month-nav .lbl{font-size:12.5px;color:var(--text-dim);min-width:140px;text-align:center;}
+
+.forecast-list{display:flex;flex-direction:column;}
+.forecast-row{
+  display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--border-soft);
+  font-size:13px;
+}
+.forecast-row:last-child{border-bottom:none;}
+.forecast-day{flex:0 0 144px;font-weight:600;color:var(--text);}
+.forecast-desc{flex:1;color:var(--text-dim);display:flex;align-items:center;gap:8px;min-width:0;}
+.forecast-icon{font-size:16px;}
+.forecast-temps{flex:0 0 auto;display:flex;gap:8px;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+.forecast-max{color:var(--text);font-weight:650;}
+.forecast-min{color:var(--text-faint);}
 
 .overlay{
   position:fixed;inset:0;background:rgba(15,20,25,.55);backdrop-filter:blur(2px);

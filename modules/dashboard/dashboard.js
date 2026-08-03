@@ -43,7 +43,7 @@ window.DashboardModule = (function(){
       const delMes = ventas.filter(v => ventaMonthKey(v) === key);
       const sinPactar = delMes.filter(v => v.estado === 'Falta pactar').length;
       return [
-        { n: delMes.length, l: 'Ventas este mes' },
+        { n: delMes.length, l: 'Este mes' },
         { n: sinPactar, l: 'Sin pactar' },
       ];
     },

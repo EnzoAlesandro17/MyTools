@@ -22,6 +22,18 @@
   <div id="root"></div>
 </div>
 
+<div class="overlay" id="forecastOverlay">
+  <div class="modal narrow">
+    <div class="modal-head">
+      <h2 id="forecastTitle">Pronóstico</h2>
+      <button class="close" id="forecastCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="forecast-list" id="forecastList"></div>
+    </div>
+  </div>
+</div>
+
 <script src="/shared/common.js"></script>
 <script src="/modules/dashboard/dashboard.js"></script>
 <script src="/modules/arqueo-caja/arqueo.js"></script>
@@ -76,11 +88,56 @@
       const w = await window.App3.api('/api/weather');
       const temp = (w.temp !== undefined && w.temp !== null) ? `${Math.round(w.temp)}°${w.unidadTemp || 'C'}` : '';
       const presion = (w.presion !== undefined && w.presion !== null) ? `${w.presion} ${w.unidadPresion || 'hPa'}` : '';
-      document.getElementById('shellWeather').textContent = `${w.icon || '🌡️'} ${temp} ${w.desc || ''}${presion ? ' · ' + presion : ''} · ${w.ciudad || ''}`.trim();
+      const resto = `${temp}${temp ? ' ' : ''}${w.desc || ''}${presion ? ' · ' + presion : ''} · ${w.ciudad || ''}`.trim();
+      document.getElementById('shellWeather').innerHTML = temp
+        ? `<button type="button" id="shellWeatherBtn" class="weather-btn" title="Ver pronóstico de 7 días">${w.icon || '🌡️'} ${resto} <span class="weather-chevron">›</span></button>`
+        : `${w.icon || '🌡️'} ${resto}`;
     }catch(e){
       document.getElementById('shellWeather').textContent = 'Clima no disponible';
     }
   }
+
+  // ---------- Pronostico de 7 dias (modal, se abre al tocar la temperatura) ----------
+  const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  function fmtDia(fecha, idx){
+    const [y, m, d] = fecha.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const etiqueta = idx === 0 ? 'Hoy' : DIAS_SEMANA[dt.getDay()];
+    return `${String(d).padStart(2,'0')}-${String(m).padStart(2,'0')} (${etiqueta})`;
+  }
+
+  async function openForecast(){
+    document.getElementById('forecastOverlay').classList.add('open');
+    document.getElementById('forecastList').innerHTML = '<div class="cfg-empty">Cargando…</div>';
+    try{
+      const f = await window.App3.api('/api/weather/forecast');
+      document.getElementById('forecastTitle').textContent = `Pronóstico 7 días · ${f.ciudad || ''}`;
+      document.getElementById('forecastList').innerHTML = (f.dias || []).map((d, idx) => `
+        <div class="forecast-row">
+          <div class="forecast-day">${fmtDia(d.fecha, idx)}</div>
+          <div class="forecast-desc"><span class="forecast-icon">${d.icon || '🌡️'}</span>${d.desc || ''}</div>
+          <div class="forecast-temps">
+            <span class="forecast-max">${d.tempMax !== null && d.tempMax !== undefined ? Math.round(d.tempMax) + '°' : '—'}</span>
+            <span class="forecast-min">${d.tempMin !== null && d.tempMin !== undefined ? Math.round(d.tempMin) + '°' : '—'}</span>
+          </div>
+        </div>
+      `).join('') || '<div class="cfg-empty">Sin datos disponibles.</div>';
+    }catch(e){
+      document.getElementById('forecastList').innerHTML = '<div class="cfg-empty">No se pudo cargar el pronóstico.</div>';
+    }
+  }
+  function closeForecast(){ document.getElementById('forecastOverlay').classList.remove('open'); }
+
+  document.getElementById('shellWeather').addEventListener('click', (e) => {
+    if(e.target.closest('#shellWeatherBtn')) openForecast();
+  });
+  document.getElementById('forecastCloseBtn').addEventListener('click', closeForecast);
+  document.getElementById('forecastOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'forecastOverlay') closeForecast();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById('forecastOverlay').classList.contains('open')) closeForecast();
+  });
 
   window.App3Shell = { refreshHeader, goTo: activate };
 
