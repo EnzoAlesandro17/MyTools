@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyTools</title>
+<link rel="stylesheet" href="/shared/styles.css">
+</head>
+<body>
+<header class="shell-header-band">
+  <div class="wrap shell-head">
+    <div class="shell-left">
+      <button class="shell-brand" id="shellBrand" title="Ir a Inicio">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <path d="M4 11.5 L12 4.5 L20 11.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 10.5 V19 A1 1 0 0 0 7 20 H17 A1 1 0 0 0 18 19 V10.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <rect x="10.3" y="14" width="3.4" height="6" rx="0.4" stroke="currentColor" stroke-width="1.6" fill="none"/>
+        </svg>
+        <span id="shellBrandText">MyTools</span>
+      </button>
+      <div class="shell-date" id="shellDate"></div>
+      <div class="shell-weather" id="shellWeather">Cargando clima…</div>
+    </div>
+    <div class="shell-right">
+      <div class="shell-status"><span class="dot"></span> Conectado a la base local (data/mytools.db)</div>
+      <button class="shell-settings-btn" id="shellSettingsBtn" title="Configuración" aria-label="Configuración">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <g fill="currentColor">
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(45 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(90 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(135 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(180 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(225 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(270 12 12)"/>
+            <rect x="10.7" y="2.6" width="2.6" height="3.8" rx="0.6" transform="rotate(315 12 12)"/>
+          </g>
+          <circle cx="12" cy="12" r="6.1" stroke="currentColor" stroke-width="2.2"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="page-content">
+  <div id="root"></div>
+</div>
+
+<div class="overlay" id="forecastOverlay">
+  <div class="modal narrow">
+    <div class="modal-head">
+      <h2 id="forecastTitle">Pronóstico</h2>
+      <button class="close" id="forecastCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="forecast-list" id="forecastList"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/shared/common.js"></script>
+<script src="/modules/dashboard/dashboard.js"></script>
+<script src="/modules/tareas/tareas.js"></script>
+<script src="/modules/arqueo-caja/arqueo.js"></script>
+<script src="/modules/control-ventas/control-ventas.js"></script>
+<script src="/modules/control-fibra/fibra.js"></script>
+<script src="/modules/enlaces/enlaces.js"></script>
+<script src="/modules/horarios/horarios.js"></script>
+<script src="/modules/configuracion/configuracion.js"></script>
+<script>
+(function(){
+  // Para sumar una seccion nueva de nivel superior: 1) crear modules/<id>/<id>.js
+  // con mount(root, ctx)/unmount(), 2) agregar su <script src> arriba, 3) agregar
+  // una entrada aca abajo. Aparece sola como tarjeta en el dashboard (con stats
+  // si se registra en modules/dashboard/dashboard.js).
+  //
+  // "Control de Ventas" es un hub: agrupa sus propias sub-secciones (hoy solo
+  // Fibra óptica) en modules/control-ventas/control-ventas.js, no en esta lista.
+  const SECTIONS = [
+    { id: 'tareas', code: 'TA', label: 'Tareas', desc: 'Seguimiento de tareas y avances', module: () => window.TareasModule },
+    { id: 'enlaces', code: 'EN', label: 'Enlaces útiles', desc: 'Links y páginas de referencia guardadas', module: () => window.EnlacesModule },
+    { id: 'arqueo', code: 'AR', label: 'Arqueo de Caja', desc: 'Registro de arqueos por turno', module: () => window.ArqueoModule },
+    { id: 'ventas', code: 'CV', label: 'Control de Ventas', desc: 'Gestión de ventas y servicios', module: () => window.ControlVentasModule },
+    { id: 'horarios', code: 'HO', label: 'Horarios', desc: 'Rangos horarios semanales por empleado', module: () => window.HorariosModule },
+  ];
+
+  // Modulos anidados: no aparecen como tarjeta en Inicio, solo son alcanzables
+  // desde el hub que los contiene (ctx.goTo sigue funcionando igual para ellos).
+  // Configuracion se alcanza desde la tuerca del encabezado, no como tarjeta.
+  const NESTED_MODULES = {
+    fibra: window.FibraModule,
+    config: window.ConfiguracionModule,
+  };
+
+  const MODULES = { dashboard: window.DashboardModule, ...NESTED_MODULES };
+  SECTIONS.forEach(s => { MODULES[s.id] = s.module(); });
+
+  const root = document.getElementById('root');
+  let current = null;
+
+  function activate(name){
+    if(!MODULES[name] || name === current) return;
+    if(current && MODULES[current]) MODULES[current].unmount();
+    current = name;
+    MODULES[name].mount(root, { goTo: activate, sections: SECTIONS });
+  }
+
+  document.getElementById('shellBrand').addEventListener('click', () => activate('dashboard'));
+  document.getElementById('shellSettingsBtn').addEventListener('click', () => activate('config'));
+
+  async function refreshHeader(){
+    document.getElementById('shellDate').textContent = window.App3.fmtDateLong(new Date());
+    try{
+      const cfg = await window.App3.api('/api/config');
+      document.getElementById('shellBrandText').textContent = cfg.nombre_negocio || 'MyTools';
+    }catch(e){ /* si falla, se queda con el nombre por defecto */ }
+    try{
+      const w = await window.App3.api('/api/weather');
+      const temp = (w.temp !== undefined && w.temp !== null) ? `${Math.round(w.temp)}°${w.unidadTemp || 'C'}` : '';
+      const presion = (w.presion !== undefined && w.presion !== null) ? `${w.presion} ${w.unidadPresion || 'hPa'}` : '';
+      const resto = `${temp}${temp ? ' ' : ''}${w.desc || ''}${presion ? ' · ' + presion : ''} · ${w.ciudad || ''}`.trim();
+      document.getElementById('shellWeather').innerHTML = temp
+        ? `<button type="button" id="shellWeatherBtn" class="weather-btn" title="Ver pronóstico de 7 días">${w.icon || '🌡️'} ${resto} <span class="weather-chevron">›</span></button>`
+        : `${w.icon || '🌡️'} ${resto}`;
+    }catch(e){
+      document.getElementById('shellWeather').textContent = 'Clima no disponible';
+    }
+  }
+
+  // ---------- Pronostico de 7 dias (modal, se abre al tocar la temperatura) ----------
+  const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  function fmtDia(fecha, idx){
+    const [y, m, d] = fecha.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const etiqueta = idx === 0 ? 'Hoy' : DIAS_SEMANA[dt.getDay()];
+    return `${String(d).padStart(2,'0')}-${String(m).padStart(2,'0')} (${etiqueta})`;
+  }
+
+  async function openForecast(){
+    document.getElementById('forecastOverlay').classList.add('open');
+    document.getElementById('forecastList').innerHTML = '<div class="cfg-empty">Cargando…</div>';
+    try{
+      const f = await window.App3.api('/api/weather/forecast');
+      document.getElementById('forecastTitle').textContent = `Pronóstico 7 días · ${f.ciudad || ''}`;
+      document.getElementById('forecastList').innerHTML = (f.dias || []).map((d, idx) => `
+        <div class="forecast-row">
+          <div class="forecast-day">${fmtDia(d.fecha, idx)}</div>
+          <div class="forecast-desc"><span class="forecast-icon">${d.icon || '🌡️'}</span>${d.desc || ''}</div>
+          <div class="forecast-temps">
+            <span class="forecast-max">${d.tempMax !== null && d.tempMax !== undefined ? Math.round(d.tempMax) + '°' : '—'}</span>
+            <span class="forecast-min">${d.tempMin !== null && d.tempMin !== undefined ? Math.round(d.tempMin) + '°' : '—'}</span>
+          </div>
+        </div>
+      `).join('') || '<div class="cfg-empty">Sin datos disponibles.</div>';
+    }catch(e){
+      document.getElementById('forecastList').innerHTML = '<div class="cfg-empty">No se pudo cargar el pronóstico.</div>';
+    }
+  }
+  function closeForecast(){ document.getElementById('forecastOverlay').classList.remove('open'); }
+
+  document.getElementById('shellWeather').addEventListener('click', (e) => {
+    if(e.target.closest('#shellWeatherBtn')) openForecast();
+  });
+  document.getElementById('forecastCloseBtn').addEventListener('click', closeForecast);
+  document.getElementById('forecastOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'forecastOverlay') closeForecast();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && document.getElementById('forecastOverlay').classList.contains('open')) closeForecast();
+  });
+
+  window.App3Shell = { refreshHeader, goTo: activate };
+
+  refreshHeader();
+  activate('dashboard');
+})();
+</script>
+</body>
+</html>
