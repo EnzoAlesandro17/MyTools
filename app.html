@@ -61,6 +61,7 @@
 
 <script src="/shared/common.js"></script>
 <script src="/modules/dashboard/dashboard.js"></script>
+<script src="/modules/tareas/tareas.js"></script>
 <script src="/modules/arqueo-caja/arqueo.js"></script>
 <script src="/modules/control-ventas/control-ventas.js"></script>
 <script src="/modules/control-fibra/fibra.js"></script>
@@ -76,6 +77,7 @@
   // "Control de Ventas" es un hub: agrupa sus propias sub-secciones (hoy solo
   // Fibra óptica) en modules/control-ventas/control-ventas.js, no en esta lista.
   const SECTIONS = [
+    { id: 'tareas', code: 'TA', label: 'Tareas', desc: 'Seguimiento de tareas y avances', module: () => window.TareasModule },
     { id: 'enlaces', code: 'EN', label: 'Enlaces útiles', desc: 'Links y páginas de referencia guardadas', module: () => window.EnlacesModule },
     { id: 'arqueo', code: 'AR', label: 'Arqueo de Caja', desc: 'Registro de arqueos por turno', module: () => window.ArqueoModule },
     { id: 'ventas', code: 'CV', label: 'Control de Ventas', desc: 'Gestión de ventas y servicios', module: () => window.ControlVentasModule },

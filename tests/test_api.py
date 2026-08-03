@@ -186,3 +186,105 @@ def test_config_put_overrides_values(client):
 
     resp = client.get('/api/config')
     assert resp.get_json()['nombre_negocio'] == 'Panacar'
+
+
+# ------------------------------------------------------------------ tareas
+
+def test_tareas_create_and_list(client):
+    resp = client.post('/api/tareas', json={'titulo': 'Renovar contrato', 'fechaLimite': '2026-09-01'})
+    assert resp.status_code == 201
+    body = resp.get_json()
+    assert body['titulo'] == 'Renovar contrato'
+    assert body['estado'] == 'abierta'
+    assert body['prioritaria'] is False
+    assert body['comentarios'] == []
+
+    resp = client.get('/api/tareas')
+    assert resp.status_code == 200
+    assert [t['titulo'] for t in resp.get_json()] == ['Renovar contrato']
+
+
+def test_tareas_create_requires_titulo(client):
+    resp = client.post('/api/tareas', json={'titulo': ''})
+    assert resp.status_code == 400
+
+
+def test_tareas_list_ordered_oldest_first(client):
+    client.post('/api/tareas', json={'titulo': 'Primera'})
+    client.post('/api/tareas', json={'titulo': 'Segunda'})
+    resp = client.get('/api/tareas')
+    assert [t['titulo'] for t in resp.get_json()] == ['Primera', 'Segunda']
+
+
+def test_tareas_toggle_prioridad(client):
+    created = client.post('/api/tareas', json={'titulo': 'Urgente'}).get_json()
+    resp = client.put(f"/api/tareas/{created['id']}/prioridad")
+    assert resp.status_code == 200
+    assert resp.get_json()['prioritaria'] is True
+
+    resp = client.put(f"/api/tareas/{created['id']}/prioridad")
+    assert resp.get_json()['prioritaria'] is False
+
+
+def test_tareas_comentarios_create_and_preview(client):
+    created = client.post('/api/tareas', json={'titulo': 'Con avances'}).get_json()
+    for i in range(7):
+        resp = client.post(f"/api/tareas/{created['id']}/comentarios", json={'texto': f'avance {i}'})
+        assert resp.status_code == 201
+
+    tarea = resp.get_json()
+    assert tarea['comentariosCount'] == 7
+    assert len(tarea['comentarios']) == 5
+    assert tarea['comentarios'][0]['texto'] == 'avance 6'  # mas reciente primero
+
+    resp = client.get(f"/api/tareas/{created['id']}/comentarios")
+    assert len(resp.get_json()) == 7
+
+
+def test_tareas_comentarios_requires_texto(client):
+    created = client.post('/api/tareas', json={'titulo': 'Sin avances'}).get_json()
+    resp = client.post(f"/api/tareas/{created['id']}/comentarios", json={'texto': ''})
+    assert resp.status_code == 400
+
+
+def test_tareas_cerrar(client):
+    created = client.post('/api/tareas', json={'titulo': 'A cerrar'}).get_json()
+    resp = client.post(f"/api/tareas/{created['id']}/cerrar")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body['estado'] == 'cerrada'
+    assert body['closedAt'] is not None
+
+
+def test_tareas_cerrar_ya_cerrada_falla(client):
+    created = client.post('/api/tareas', json={'titulo': 'A cerrar'}).get_json()
+    client.post(f"/api/tareas/{created['id']}/cerrar")
+    resp = client.post(f"/api/tareas/{created['id']}/cerrar")
+    assert resp.status_code == 400
+
+
+def test_tareas_reabrir(client):
+    created = client.post('/api/tareas', json={'titulo': 'A reabrir'}).get_json()
+    client.post(f"/api/tareas/{created['id']}/cerrar")
+    resp = client.post(f"/api/tareas/{created['id']}/reabrir")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body['estado'] == 'abierta'
+    assert body['closedAt'] is None
+
+    # una vez reabierta, se pueden volver a agregar avances
+    resp = client.post(f"/api/tareas/{created['id']}/comentarios", json={'texto': 'de nuevo activa'})
+    assert resp.status_code == 201
+
+
+def test_tareas_reabrir_si_no_esta_cerrada_falla(client):
+    created = client.post('/api/tareas', json={'titulo': 'Abierta'}).get_json()
+    resp = client.post(f"/api/tareas/{created['id']}/reabrir")
+    assert resp.status_code == 400
+
+
+def test_tareas_comentario_en_tarea_cerrada_falla(client):
+    created = client.post('/api/tareas', json={'titulo': 'A cerrar'}).get_json()
+    client.post(f"/api/tareas/{created['id']}/cerrar")
+    resp = client.post(f"/api/tareas/{created['id']}/comentarios", json={'texto': 'tarde'})
+    assert resp.status_code == 400

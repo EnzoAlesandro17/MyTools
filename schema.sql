@@ -83,6 +83,26 @@ CREATE TABLE IF NOT EXISTS ventas (
 );
 CREATE INDEX IF NOT EXISTS idx_ventas_fecha_ingreso ON ventas(fecha_ingreso);
 
+-- ---------- Tareas ----------
+CREATE TABLE IF NOT EXISTS tareas (
+  id TEXT PRIMARY KEY,
+  titulo TEXT NOT NULL,
+  fecha_limite TEXT,
+  prioritaria INTEGER NOT NULL DEFAULT 0,
+  estado TEXT NOT NULL DEFAULT 'abierta',
+  created_at INTEGER NOT NULL,
+  closed_at INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS tarea_comentarios (
+  id TEXT PRIMARY KEY,
+  tarea_id TEXT NOT NULL REFERENCES tareas(id),
+  texto TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tarea_comentarios_tarea_id ON tarea_comentarios(tarea_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_created_at ON tareas(created_at);
+
 -- ---------- Enlaces utiles ----------
 CREATE TABLE IF NOT EXISTS enlaces (
   id TEXT PRIMARY KEY,

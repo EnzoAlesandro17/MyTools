@@ -4,7 +4,7 @@ window.ConfiguracionModule = (function(){
 
   const COUNT_LABELS = {
     sucursales: 'Sucursales', empleados: 'Empleados', arqueos: 'Arqueos',
-    planes: 'Planes', ventas: 'Ventas', enlaces: 'Enlaces',
+    planes: 'Planes', ventas: 'Ventas', enlaces: 'Enlaces', tareas: 'Tareas',
   };
 
   const TEMPLATE = `

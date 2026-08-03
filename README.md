@@ -7,6 +7,11 @@ uso en una sola máquina, no como servicio expuesto a internet.
 
 ## Módulos
 
+- **Tareas** — seguimiento de tareas internas: título, fecha máxima y
+  marca de prioridad (borde rojo + etiqueta "Prioritaria"). Cada tarea
+  lleva un registro de avances con fecha y hora; la tarjeta muestra los
+  últimos 5 y hay un modal para ver el historial completo. Se puede
+  cerrar una tarea (deja de aceptar avances).
 - **Arqueo de caja** — carga diaria de caja fuerte / conteo de caja / saldo
   de sistema, con export e import a Excel. Editar y eliminar un arqueo
   cargado está deshabilitado a propósito (para evitar ediciones de mala fe);
@@ -14,10 +19,11 @@ uso en una sola máquina, no como servicio expuesto a internet.
   reactivarse cuando exista un rol admin.
 - **Control de fibra** — seguimiento de ventas/instalaciones de fibra por
   vendedor, con export e import a Excel.
-- **Sucursal / Empleados** — listado compartido de empleados.
 - **Enlaces** — accesos directos a sitios/recursos usados a diario.
-- **Configuración** — datos del negocio y clima (usa la API pública de
-  [Open-Meteo](https://open-meteo.com/)).
+- **Configuración** — sucursales, empleados, unidades y ciudad del clima
+  (usa la API pública de [Open-Meteo](https://open-meteo.com/)), y
+  export/import de Arqueo y Fibra. Se accede desde el ícono de tuerca
+  en el encabezado, no tiene tarjeta propia en Inicio.
 
 ## Requisitos
 

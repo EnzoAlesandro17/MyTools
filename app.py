@@ -809,6 +809,132 @@ def enlaces_delete(eid):
 
 
 # ===========================================================================
+# Tareas
+# ===========================================================================
+
+TAREA_COMMENT_PREVIEW = 5
+
+
+def row_to_comentario(row):
+    return {'id': row['id'], 'texto': row['texto'], 'createdAt': row['created_at']}
+
+
+def row_to_tarea(db, row):
+    comentarios = db.execute(
+        'SELECT * FROM tarea_comentarios WHERE tarea_id = ? ORDER BY created_at DESC LIMIT ?',
+        (row['id'], TAREA_COMMENT_PREVIEW),
+    ).fetchall()
+    total = db.execute(
+        'SELECT count(*) c FROM tarea_comentarios WHERE tarea_id = ?', (row['id'],)
+    ).fetchone()['c']
+    return {
+        'id': row['id'], 'titulo': row['titulo'], 'fechaLimite': row['fecha_limite'] or '',
+        'prioritaria': bool(row['prioritaria']), 'estado': row['estado'],
+        'createdAt': row['created_at'], 'closedAt': row['closed_at'],
+        'comentarios': [row_to_comentario(c) for c in comentarios],
+        'comentariosCount': total,
+    }
+
+
+@app.get('/api/tareas')
+def tareas_list():
+    db = get_db()
+    rows = db.execute('SELECT * FROM tareas ORDER BY created_at ASC').fetchall()
+    return jsonify([row_to_tarea(db, r) for r in rows])
+
+
+@app.post('/api/tareas')
+def tareas_create():
+    data = request.get_json(force=True, silent=True) or {}
+    titulo = (data.get('titulo') or '').strip()
+    if not titulo:
+        return bad_request('titulo requerido')
+    fecha_limite = (data.get('fechaLimite') or '').strip()
+    prioritaria = bool(data.get('prioritaria'))
+    db = get_db()
+    tid = new_id()
+    db.execute(
+        '''INSERT INTO tareas (id, titulo, fecha_limite, prioritaria, estado, created_at)
+           VALUES (?, ?, ?, ?, 'abierta', ?)''',
+        (tid, titulo, fecha_limite, 1 if prioritaria else 0, now_ms()),
+    )
+    db.commit()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    return jsonify(row_to_tarea(db, row)), 201
+
+
+@app.put('/api/tareas/<tid>/prioridad')
+def tareas_toggle_prioridad(tid):
+    db = get_db()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    if not row:
+        return bad_request('no existe')
+    db.execute('UPDATE tareas SET prioritaria = ? WHERE id = ?', (0 if row['prioritaria'] else 1, tid))
+    db.commit()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    return jsonify(row_to_tarea(db, row))
+
+
+@app.post('/api/tareas/<tid>/cerrar')
+def tareas_cerrar(tid):
+    db = get_db()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    if not row:
+        return bad_request('no existe')
+    if row['estado'] == 'cerrada':
+        return bad_request('la tarea ya esta cerrada')
+    db.execute("UPDATE tareas SET estado = 'cerrada', closed_at = ? WHERE id = ?", (now_ms(), tid))
+    db.commit()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    return jsonify(row_to_tarea(db, row))
+
+
+@app.post('/api/tareas/<tid>/reabrir')
+def tareas_reabrir(tid):
+    db = get_db()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    if not row:
+        return bad_request('no existe')
+    if row['estado'] != 'cerrada':
+        return bad_request('la tarea no esta cerrada')
+    db.execute("UPDATE tareas SET estado = 'abierta', closed_at = NULL WHERE id = ?", (tid,))
+    db.commit()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    return jsonify(row_to_tarea(db, row))
+
+
+@app.get('/api/tareas/<tid>/comentarios')
+def tarea_comentarios_list(tid):
+    db = get_db()
+    rows = db.execute(
+        'SELECT * FROM tarea_comentarios WHERE tarea_id = ? ORDER BY created_at DESC', (tid,)
+    ).fetchall()
+    return jsonify([row_to_comentario(r) for r in rows])
+
+
+@app.post('/api/tareas/<tid>/comentarios')
+def tarea_comentarios_create(tid):
+    db = get_db()
+    tarea = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    if not tarea:
+        return bad_request('no existe')
+    if tarea['estado'] == 'cerrada':
+        return bad_request('la tarea esta cerrada')
+    data = request.get_json(force=True, silent=True) or {}
+    texto = (data.get('texto') or '').strip()
+    if not texto:
+        return bad_request('texto requerido')
+    cid = new_id()
+    db.execute(
+        'INSERT INTO tarea_comentarios (id, tarea_id, texto, created_at) VALUES (?, ?, ?, ?)',
+        (cid, tid, texto, now_ms()),
+    )
+    db.commit()
+    row = db.execute('SELECT * FROM tareas WHERE id = ?', (tid,)).fetchone()
+    return jsonify(row_to_tarea(db, row)), 201
+
+
+# ===========================================================================
 # Configuracion global + clima
 # ===========================================================================
 
@@ -867,7 +993,7 @@ def config_put():
 def config_info():
     db = get_db()
     counts = {}
-    for table in ('sucursales', 'empleados', 'arqueos', 'planes', 'ventas', 'enlaces'):
+    for table in ('sucursales', 'empleados', 'arqueos', 'planes', 'ventas', 'enlaces', 'tareas'):
         counts[table] = db.execute(f'SELECT count(*) c FROM {table}').fetchone()['c']
     size = DB_PATH.stat().st_size if DB_PATH.exists() else 0
     return jsonify({'dbPath': str(DB_PATH), 'dbSizeKb': round(size / 1024, 1), 'counts': counts})

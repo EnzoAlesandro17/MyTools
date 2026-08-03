@@ -25,6 +25,15 @@ window.DashboardModule = (function(){
   // Cada seccion que sepa dar un resumen se registra aca por id.
   // Una seccion nueva que no tenga entrada simplemente no muestra stats en su tarjeta.
   const SECTION_SUMMARIES = {
+    tareas: async function(){
+      const tareas = await api('/api/tareas');
+      const abiertas = tareas.filter(t => t.estado !== 'cerrada');
+      const prioritarias = abiertas.filter(t => t.prioritaria).length;
+      return [
+        { n: abiertas.length, l: 'Abiertas' },
+        { n: prioritarias, l: 'Prioritarias' },
+      ];
+    },
     arqueo: async function(){
       const registros = await api('/api/arqueo/registros');
       const key = monthKeyOf(new Date());
