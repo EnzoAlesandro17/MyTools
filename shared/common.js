@@ -25,6 +25,15 @@ window.App3 = (function(){
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  // Mes "efectivo" de una venta de fibra: el de la fecha mas tardia entre
+  // ingreso, pactada e instalacion. Si se pacta o instala en un mes posterior
+  // al de ingreso, la venta pasa a contarse en ese mes en vez del de ingreso.
+  function ventaMonthKey(v){
+    const fechas = [v.fechaIngreso, v.fechaPactada, v.fechaInstalacion].filter(Boolean);
+    if(!fechas.length) return '';
+    return fechas.reduce((max, d) => d > max ? d : max).slice(0,7);
+  }
+
   // ---------- Fechas: input de texto con mascara dd/mm/aaaa ----------
   // El valor "de verdad" siempre se guarda/envia como ISO (aaaa-mm-dd); estas
   // funciones convierten entre eso y lo que ve/escribe el usuario.
@@ -168,5 +177,5 @@ window.App3 = (function(){
     });
   }
 
-  return { EPS, escapeHtml, escapeAttr, capitalizeWords, fmtMoney, todayStr, fmtDateLong, downloadUrl, api, renderSectionCards, moduleIcon, isoToDisplayDate, parseDateToIso, attachDateMask };
+  return { EPS, escapeHtml, escapeAttr, capitalizeWords, fmtMoney, todayStr, fmtDateLong, ventaMonthKey, downloadUrl, api, renderSectionCards, moduleIcon, isoToDisplayDate, parseDateToIso, attachDateMask };
 })();

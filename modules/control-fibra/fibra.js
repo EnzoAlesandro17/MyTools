@@ -1,6 +1,6 @@
 // MyTools - modulo Control de Fibra (portado desde control-fibra.html, persistencia via /api/fibra/*)
 window.FibraModule = (function(){
-  const { escapeHtml, escapeAttr, capitalizeWords, todayStr, api, moduleIcon, isoToDisplayDate, parseDateToIso, attachDateMask } = window.App3;
+  const { escapeHtml, escapeAttr, capitalizeWords, todayStr, api, moduleIcon, isoToDisplayDate, parseDateToIso, attachDateMask, ventaMonthKey } = window.App3;
 
   const FIELD_IDS = ['vendedor','fechaIngreso','plan','cantidadTV','fechaPactada','franjaPactada','ot','sds',
     'fechaInstalacion','estado','observaciones','clienteNombre','dni','fechaNacimiento','email','telefono','telefonoAlt',
@@ -339,7 +339,7 @@ window.FibraModule = (function(){
     // ---------- Estadísticas (cabecera) y filtros ----------
     function monthFiltered(){
       const key = monthKeyOf(currentMonth);
-      return activeVentas().filter(v => (v.fechaIngreso||'').slice(0,7) === key);
+      return activeVentas().filter(v => ventaMonthKey(v) === key);
     }
 
     function renderStats(){
@@ -481,7 +481,7 @@ window.FibraModule = (function(){
     function renderStatsModal(){
       $('statsMonthLbl').textContent = monthLabelShort(statsMonth);
       const key = monthKeyOf(statsMonth);
-      const base = activeVentas().filter(v => (v.fechaIngreso||'').slice(0,7) === key);
+      const base = activeVentas().filter(v => ventaMonthKey(v) === key);
       const total = base.length;
       const porEstado = {};
       ESTADOS.forEach(e => porEstado[e] = base.filter(v => v.estado === e).length);

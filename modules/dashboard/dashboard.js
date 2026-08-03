@@ -1,6 +1,6 @@
 // MyTools - modulo Dashboard (pantalla de inicio, tarjetas de acceso a cada seccion)
 window.DashboardModule = (function(){
-  const { fmtMoney, api, renderSectionCards } = window.App3;
+  const { fmtMoney, api, renderSectionCards, ventaMonthKey } = window.App3;
   const EPS = 0.005;
 
   const TEMPLATE = `
@@ -40,7 +40,7 @@ window.DashboardModule = (function(){
     ventas: async function(){
       const ventas = await api('/api/fibra/ventas');
       const key = monthKeyOf(new Date());
-      const delMes = ventas.filter(v => (v.fechaIngreso||'').slice(0,7) === key);
+      const delMes = ventas.filter(v => ventaMonthKey(v) === key);
       const sinPactar = delMes.filter(v => v.estado === 'Falta pactar').length;
       return [
         { n: delMes.length, l: 'Ventas este mes' },
