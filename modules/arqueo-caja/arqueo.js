@@ -549,6 +549,12 @@ window.ArqueoModule = (function(){
       editingId = null;
     }
 
+    function requestCloseModal(){
+      const inForm = $('form').style.display !== 'none';
+      if(inForm && !confirm('¿Desea cerrar? Se perderá todo el progreso')) return;
+      closeModal();
+    }
+
     // ---------- Formulario ----------
     function clearForm(){
       editingFecha = null;
@@ -621,18 +627,18 @@ window.ArqueoModule = (function(){
     }
 
     $('newBtn').addEventListener('click', openNew);
-    $('closeBtn').addEventListener('click', closeModal);
+    $('closeBtn').addEventListener('click', requestCloseModal);
     $('viewCloseBtn').addEventListener('click', closeModal);
     // Editar/Eliminar deshabilitados a proposito (ver botones comentados en el template).
     // $('viewEditBtn').addEventListener('click', switchToEdit);
     // $('viewDeleteBtn').addEventListener('click', deleteEntry);
-    $('cancelBtn').addEventListener('click', closeModal);
+    $('cancelBtn').addEventListener('click', requestCloseModal);
     $('saveBtn').addEventListener('click', saveForm);
-    overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+    // Click afuera del modal no cierra nada (evita perder progreso sin querer).
 
     escHandler = (e) => {
       if(e.key !== 'Escape') return;
-      if(overlay.classList.contains('open')) closeModal();
+      if(overlay.classList.contains('open')) requestCloseModal();
       else if(statsOverlay.classList.contains('open')) closeStats();
     };
     document.addEventListener('keydown', escHandler);
